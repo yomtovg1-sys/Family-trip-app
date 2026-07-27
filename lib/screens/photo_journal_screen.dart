@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/photo_entry.dart';
 import '../providers/photo_journal_provider.dart';
+import '../providers/trip_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 
@@ -11,10 +12,11 @@ class PhotoJournalScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final photos = context.watch<PhotoJournalProvider>().photos;
+    final tripId = context.watch<TripProvider>().current.trip.id;
+    final photos = context.watch<PhotoJournalProvider>().forTrip(tripId);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Photo Journal')),
+      appBar: AppBar(title: const Text('Memories')),
       drawer: const AppDrawer(currentRoute: AppSection.photosRoute),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addPhotoMemory(context),
@@ -38,9 +40,11 @@ class PhotoJournalScreen extends StatelessWidget {
 
   void _addPhotoMemory(BuildContext context) {
     final provider = context.read<PhotoJournalProvider>();
+    final tripId = context.read<TripProvider>().current.trip.id;
     provider.addPhoto(
       PhotoEntry(
         id: 'ph${DateTime.now().millisecondsSinceEpoch}',
+        tripId: tripId,
         caption: 'New family memory',
         takenBy: 'Family',
         date: DateTime.now(),
@@ -63,11 +67,28 @@ class _PhotoCard extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            child: Container(
-              width: double.infinity,
-              color: Theme.of(context).colorScheme.primaryContainer,
-              alignment: Alignment.center,
-              child: Text(photo.emoji, style: const TextStyle(fontSize: 48)),
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  alignment: Alignment.center,
+                  child: Text(photo.emoji, style: const TextStyle(fontSize: 48)),
+                ),
+                if (photo.isFavorite)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFFC94D),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.star_rounded, color: Colors.white, size: 14),
+                    ),
+                  ),
+              ],
             ),
           ),
           Padding(

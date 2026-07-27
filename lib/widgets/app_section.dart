@@ -17,10 +17,11 @@ class AppSection {
   static const String itineraryRoute = '/itinerary';
   static const String mapRoute = '/map';
   static const String packingRoute = '/packing';
-  static const String budgetRoute = '/budget';
+  static const String expensesRoute = '/expenses';
   static const String reservationsRoute = '/reservations';
   static const String photosRoute = '/photos';
   static const String tasksRoute = '/tasks';
+  static const String aiAssistantRoute = '/ai-assistant';
 
   static const home = AppSection(
     route: homeRoute,
@@ -30,72 +31,70 @@ class AppSection {
   );
 
   static const itinerary = AppSection(
-    route: '/itinerary',
+    route: itineraryRoute,
     title: 'Itinerary',
     icon: Icons.calendar_month_rounded,
     color: Color(0xFF3A6EA5),
   );
 
   static const map = AppSection(
-    route: '/map',
+    route: mapRoute,
     title: 'Map',
     icon: Icons.map_rounded,
     color: Color(0xFF2F9E44),
   );
 
   static const packing = AppSection(
-    route: '/packing',
+    route: packingRoute,
     title: 'Packing',
     icon: Icons.checklist_rounded,
     color: Color(0xFFB5651D),
   );
 
-  static const budget = AppSection(
-    route: '/budget',
-    title: 'Budget',
+  static const expenses = AppSection(
+    route: expensesRoute,
+    title: 'Expenses',
     icon: Icons.savings_rounded,
     color: Color(0xFF2B8A8A),
   );
 
   static const reservations = AppSection(
-    route: '/reservations',
+    route: reservationsRoute,
     title: 'Reservations',
     icon: Icons.confirmation_number_rounded,
     color: Color(0xFF6741D9),
   );
 
-  static const photoJournal = AppSection(
-    route: '/photos',
-    title: 'Photo Journal',
+  static const memories = AppSection(
+    route: photosRoute,
+    title: 'Memories',
     icon: Icons.photo_library_rounded,
     color: Color(0xFFD6336C),
   );
 
   static const tasks = AppSection(
-    route: '/tasks',
+    route: tasksRoute,
     title: 'Family Tasks',
     icon: Icons.task_alt_rounded,
     color: Color(0xFFE8590C),
   );
 
-  static const List<AppSection> quickAccess = [
-    itinerary,
-    map,
-    packing,
-    budget,
-    reservations,
-    photoJournal,
-    tasks,
-  ];
+  static const aiAssistant = AppSection(
+    route: aiAssistantRoute,
+    title: 'AI Assistant',
+    icon: Icons.auto_awesome_rounded,
+    color: Color(0xFF6C63FF),
+  );
 
   static const List<AppSection> all = [
     home,
     itinerary,
     map,
     packing,
-    budget,
+    expenses,
     reservations,
-    photoJournal,
+    memories,
     tasks,
+    aiAssistant,
   ];
 }

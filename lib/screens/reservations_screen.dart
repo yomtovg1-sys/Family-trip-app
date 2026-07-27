@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/reservation.dart';
 import '../providers/reservations_provider.dart';
+import '../providers/trip_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 
@@ -11,13 +12,16 @@ class ReservationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reservations = context.watch<ReservationsProvider>().reservations;
+    final trip = context.watch<TripProvider>().current.trip;
+    final reservations = context.watch<ReservationsProvider>().forTrip(trip.id);
     final dateFormat = DateFormat('MMM d, h:mm a');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reservations')),
+      appBar: AppBar(title: Text('Reservations · ${trip.name}')),
       drawer: const AppDrawer(currentRoute: AppSection.reservationsRoute),
-      body: ListView.builder(
+      body: reservations.isEmpty
+          ? const Center(child: Text('No reservations for this trip yet.'))
+          : ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: reservations.length,
         itemBuilder: (context, index) {

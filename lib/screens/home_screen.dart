@@ -3,71 +3,143 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../models/reservation.dart';
 import '../models/trip.dart';
+import '../providers/photo_journal_provider.dart';
+import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
+import '../screens/ai_assistant_screen.dart';
+import '../widgets/ai_assistant_card.dart';
+import '../widgets/alerts_banner.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/countdown_timer.dart';
+import '../widgets/expenses_card.dart';
+import '../widgets/journey_card.dart';
+import '../widgets/memories_preview.dart';
+import '../widgets/section_header.dart';
+import '../widgets/trip_selector.dart';
+import '../widgets/weather_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final trip = context.watch<TripProvider>().trip;
+    final dashboard = context.watch<TripProvider>().current;
+    final reservations = context.watch<ReservationsProvider>().forTrip(dashboard.trip.id);
+    final photos = context.watch<PhotoJournalProvider>().forTrip(dashboard.trip.id);
     final theme = Theme.of(context);
+
+    var step = 0;
+    Duration nextDelay() {
+      final delay = Duration(milliseconds: 60 + step * 70);
+      step++;
+      return delay;
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Family Trip Planner'),
         backgroundColor: theme.colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       drawer: const AppDrawer(currentRoute: AppSection.homeRoute),
       body: ListView(
+        key: const Key('homeScrollView'),
         padding: EdgeInsets.zero,
         children: [
-          _Reveal(child: _CountdownHeroCard(trip: trip)),
+          _Reveal(delay: nextDelay(), child: _CountdownHeroCard(dashboard: dashboard)),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+            padding: const EdgeInsets.only(top: 16),
+            child: Center(
+              child: _Reveal(delay: nextDelay(), child: const TripSelector()),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (dashboard.alerts.isNotEmpty) ...[
+                  _Reveal(delay: nextDelay(), child: AlertsBanner(alerts: dashboard.alerts)),
+                  const SizedBox(height: 8),
+                ],
                 _Reveal(
-                  delay: const Duration(milliseconds: 120),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Quick Access', style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Everything for the trip, in one place',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  delay: nextDelay(),
+                  child: SectionHeader(title: dashboard.locationSectionLabel),
+                ),
+                const SizedBox(height: 12),
+                _Reveal(delay: nextDelay(), child: JourneyCard(dashboard: dashboard)),
+                const SizedBox(height: 28),
+                if (dashboard.weather != null) ...[
+                  _Reveal(delay: nextDelay(), child: const SectionHeader(title: 'Weather')),
+                  const SizedBox(height: 12),
+                  _Reveal(delay: nextDelay(), child: WeatherCard(weather: dashboard.weather!)),
+                  const SizedBox(height: 28),
+                ],
+                _Reveal(
+                  delay: nextDelay(),
+                  child: const SectionHeader(
+                    title: 'Expenses',
+                    subtitle: 'Tracked automatically, no budget cap',
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                _Reveal(
+                  delay: nextDelay(),
+                  child: ExpensesCard(
+                    todayTotal: dashboard.todayExpenses,
+                    tripTotal: dashboard.totalExpenses,
+                    byCategory: dashboard.expensesByCategory,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                _Reveal(
+                  delay: nextDelay(),
+                  child: SectionHeader(
+                    title: 'Quick Access',
+                    subtitle: 'Everything for ${dashboard.trip.name.split(' ').first}\'s trip',
+                  ),
+                ),
+                const SizedBox(height: 14),
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 14,
                   crossAxisSpacing: 14,
-                  childAspectRatio: 1.25,
+                  childAspectRatio: 1.15,
                   children: [
-                    for (final (index, section) in AppSection.quickAccess.indexed)
-                      _Reveal(
-                        delay: Duration(milliseconds: 160 + index * 60),
-                        child: _QuickAccessCard(
-                          section: section,
-                          onTap: () => Navigator.of(context).pushNamed(section.route),
-                        ),
-                      ),
+                    for (final item in _buildQuickAccessItems(
+                      context: context,
+                      dashboard: dashboard,
+                      reservations: reservations,
+                      photoCount: photos.length,
+                    ))
+                      _Reveal(delay: nextDelay(), child: item),
                   ],
+                ),
+                const SizedBox(height: 28),
+                _Reveal(
+                  delay: nextDelay(),
+                  child: AiAssistantCard(
+                    onOpen: (prompt) => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AiAssistantScreen(initialPrompt: prompt),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                _Reveal(delay: nextDelay(), child: const SectionHeader(title: 'Memories')),
+                const SizedBox(height: 12),
+                _Reveal(
+                  delay: nextDelay(),
+                  child: MemoriesPreview(
+                    photos: photos,
+                    onOpenJournal: () => Navigator.of(context).pushNamed(AppSection.photosRoute),
+                  ),
                 ),
               ],
             ),
@@ -75,6 +147,92 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<_QuickAccessCard> _buildQuickAccessItems({
+    required BuildContext context,
+    required TripDashboard dashboard,
+    required List<Reservation> reservations,
+    required int photoCount,
+  }) {
+    String relativeDay(DateTime target) {
+      final diff = target.difference(DateTime.now()).inDays;
+      if (diff <= 0) return 'Today';
+      if (diff == 1) return 'Tomorrow';
+      return 'In $diff days';
+    }
+
+    final flights = reservations.where((r) => r.type == ReservationType.flight).toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
+    final hotels = reservations.where((r) => r.type == ReservationType.hotel).toList();
+
+    void go(String route) => Navigator.of(context).pushNamed(route);
+
+    return [
+      _QuickAccessCard(
+        title: 'Flights',
+        subtitle: flights.isEmpty
+            ? 'No flights booked'
+            : dashboard.trip.hasEnded
+                ? flights.first.title
+                : 'Next: ${relativeDay(flights.first.start)}',
+        icon: Icons.flight_rounded,
+        color: const Color(0xFF3A6EA5),
+        onTap: () => go(AppSection.reservationsRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Hotels',
+        subtitle: hotels.isEmpty ? 'No hotels booked' : hotels.first.title,
+        icon: Icons.hotel_rounded,
+        color: const Color(0xFF7986CB),
+        onTap: () => go(AppSection.reservationsRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Map',
+        subtitle: '${dashboard.journeyStops.length} stops mapped',
+        icon: Icons.map_rounded,
+        color: const Color(0xFF2F9E44),
+        onTap: () => go(AppSection.mapRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Places',
+        subtitle: 'Discover nearby spots',
+        icon: Icons.travel_explore_rounded,
+        color: const Color(0xFFE8590C),
+        onTap: () => go(AppSection.mapRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Expenses',
+        subtitle: '\$${dashboard.totalExpenses.toStringAsFixed(0)} spent',
+        icon: Icons.savings_rounded,
+        color: const Color(0xFF2B8A8A),
+        onTap: () => go(AppSection.expensesRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Memories',
+        subtitle: '$photoCount photos',
+        icon: Icons.photo_library_rounded,
+        color: const Color(0xFFD6336C),
+        onTap: () => go(AppSection.photosRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Reservations',
+        subtitle: dashboard.trip.hasEnded
+            ? '${reservations.length} saved'
+            : '${reservations.length} upcoming',
+        icon: Icons.confirmation_number_rounded,
+        color: const Color(0xFF6741D9),
+        onTap: () => go(AppSection.reservationsRoute),
+      ),
+      _QuickAccessCard(
+        title: 'AI Assistant',
+        subtitle: 'Ask me anything',
+        icon: Icons.auto_awesome_rounded,
+        color: const Color(0xFF6C63FF),
+        onTap: () => Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const AiAssistantScreen())),
+      ),
+    ];
   }
 }
 
@@ -126,17 +284,21 @@ class _RevealState extends State<_Reveal> {
 }
 
 /// The big, warm, family-facing countdown hero. This is the first thing a
-/// family member sees when opening the app: the trip photo as a backdrop
-/// with a frosted-glass countdown panel floating over it.
+/// family member sees when opening the app: the trip photo (or a gradient
+/// fallback for trips without one yet) as a backdrop with a frosted-glass
+/// countdown panel floating over it.
 class _CountdownHeroCard extends StatelessWidget {
-  final Trip trip;
+  final TripDashboard dashboard;
 
-  const _CountdownHeroCard({required this.trip});
+  const _CountdownHeroCard({required this.dashboard});
 
   static const _gold = Color(0xFFFFC94D);
 
   @override
   Widget build(BuildContext context) {
+    final trip = dashboard.trip;
+    final theme = Theme.of(context);
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
       child: SizedBox(
@@ -145,7 +307,23 @@ class _CountdownHeroCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset('assets/images/family_hero.jpg', fit: BoxFit.cover),
+            if (trip.photoAsset != null)
+              Image.asset(trip.photoAsset!, fit: BoxFit.cover)
+            else
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Opacity(
+                  opacity: 0.22,
+                  child: Text(trip.heroEmoji, style: const TextStyle(fontSize: 160)),
+                ),
+              ),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -208,20 +386,33 @@ class _GlassPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('👨‍👩‍👧‍👦', style: TextStyle(fontSize: 17)),
+                  Text(trip.flagEmoji, style: const TextStyle(fontSize: 17)),
                   const SizedBox(width: 8),
-                  Text(
-                    _eyebrow(),
-                    style: const TextStyle(
-                      color: _CountdownHeroCard._gold,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 2.1,
+                  Expanded(
+                    child: Text(
+                      _eyebrow(),
+                      style: const TextStyle(
+                        color: _CountdownHeroCard._gold,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.1,
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
+              Text(
+                trip.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
               _buildHeadline(context),
               const SizedBox(height: 18),
               _buildBody(context),
@@ -291,7 +482,7 @@ class _GlassPanel extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.of(context).pushNamed(AppSection.photosRoute),
-            child: const Text('Photo Journal'),
+            child: const Text('Memories'),
           ),
         ],
       );
@@ -322,7 +513,7 @@ class _BigStat extends StatelessWidget {
           number,
           style: const TextStyle(
             color: _CountdownHeroCard._gold,
-            fontSize: 64,
+            fontSize: 56,
             fontWeight: FontWeight.w900,
             height: 1,
             letterSpacing: -1.5,
@@ -334,7 +525,7 @@ class _BigStat extends StatelessWidget {
             suffix,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 19,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.2,
             ),
@@ -346,10 +537,19 @@ class _BigStat extends StatelessWidget {
 }
 
 class _QuickAccessCard extends StatefulWidget {
-  final AppSection section;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
-  const _QuickAccessCard({required this.section, required this.onTap});
+  const _QuickAccessCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
 
   @override
   State<_QuickAccessCard> createState() => _QuickAccessCardState();
@@ -360,7 +560,6 @@ class _QuickAccessCardState extends State<_QuickAccessCard> {
 
   @override
   Widget build(BuildContext context) {
-    final section = widget.section;
     final theme = Theme.of(context);
 
     return Material(
@@ -381,31 +580,40 @@ class _QuickAccessCardState extends State<_QuickAccessCard> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  section.color.withValues(alpha: 0.16),
-                  section.color.withValues(alpha: 0.05),
+                  widget.color.withValues(alpha: 0.16),
+                  widget.color.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: section.color.withValues(alpha: 0.16)),
+              border: Border.all(color: widget.color.withValues(alpha: 0.16)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 40,
+                  height: 40,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: section.color.withValues(alpha: 0.18),
+                    color: widget.color.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(section.icon, color: section.color, size: 23),
+                  child: Icon(widget.icon, color: widget.color, size: 21),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Text(
-                  section.title,
+                  widget.title,
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

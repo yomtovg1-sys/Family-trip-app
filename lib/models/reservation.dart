@@ -28,6 +28,7 @@ extension ReservationTypeX on ReservationType {
 
 class Reservation {
   final String id;
+  final String tripId;
   final ReservationType type;
   final String title;
   final String confirmationNumber;
@@ -37,6 +38,7 @@ class Reservation {
 
   const Reservation({
     required this.id,
+    required this.tripId,
     required this.type,
     required this.title,
     required this.confirmationNumber,

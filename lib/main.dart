@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'providers/budget_provider.dart';
 import 'providers/itinerary_provider.dart';
 import 'providers/packing_provider.dart';
 import 'providers/photo_journal_provider.dart';
 import 'providers/reservations_provider.dart';
 import 'providers/tasks_provider.dart';
 import 'providers/trip_provider.dart';
-import 'screens/budget_screen.dart';
+import 'screens/ai_assistant_screen.dart';
+import 'screens/expenses_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/itinerary_screen.dart';
 import 'screens/map_screen.dart';
@@ -33,7 +33,6 @@ class FamilyTripApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TripProvider()),
         ChangeNotifierProvider(create: (_) => ItineraryProvider()),
         ChangeNotifierProvider(create: (_) => PackingProvider()),
-        ChangeNotifierProvider(create: (_) => BudgetProvider()),
         ChangeNotifierProvider(create: (_) => ReservationsProvider()),
         ChangeNotifierProvider(create: (_) => PhotoJournalProvider()),
         ChangeNotifierProvider(create: (_) => TasksProvider()),
@@ -49,10 +48,11 @@ class FamilyTripApp extends StatelessWidget {
           AppSection.itineraryRoute: (_) => const ItineraryScreen(),
           AppSection.mapRoute: (_) => const MapScreen(),
           AppSection.packingRoute: (_) => const PackingScreen(),
-          AppSection.budgetRoute: (_) => const BudgetScreen(),
+          AppSection.expensesRoute: (_) => const ExpensesScreen(),
           AppSection.reservationsRoute: (_) => const ReservationsScreen(),
           AppSection.photosRoute: (_) => const PhotoJournalScreen(),
           AppSection.tasksRoute: (_) => const TasksScreen(),
+          AppSection.aiAssistantRoute: (_) => const AiAssistantScreen(),
         },
       ),
     );

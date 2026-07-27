@@ -1,0 +1,61 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../models/expense_entry.dart';
+import '../providers/trip_provider.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/app_section.dart';
+import '../widgets/expenses_card.dart';
+
+class ExpensesScreen extends StatelessWidget {
+  const ExpensesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dashboard = context.watch<TripProvider>().current;
+    final dateFormat = DateFormat('MMM d');
+    final entries = dashboard.expenses.reversed.toList();
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Travel Expenses')),
+      drawer: const AppDrawer(currentRoute: AppSection.expensesRoute),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ExpensesCard(
+            todayTotal: dashboard.todayExpenses,
+            tripTotal: dashboard.totalExpenses,
+            byCategory: dashboard.expensesByCategory,
+          ),
+          const SizedBox(height: 20),
+          Text('All Expenses', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          if (entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No expenses logged for this trip yet.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            )
+          else
+            for (final entry in entries)
+              Card(
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: entry.category.color.withValues(alpha: 0.15),
+                    child: Icon(entry.category.icon, color: entry.category.color),
+                  ),
+                  title: Text(entry.description),
+                  subtitle: Text('${entry.category.label} · ${dateFormat.format(entry.date)}'),
+                  trailing: Text(
+                    '\$${entry.amount.toStringAsFixed(0)}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+        ],
+      ),
+    );
+  }
+}
