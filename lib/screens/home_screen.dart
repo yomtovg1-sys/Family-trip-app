@@ -10,9 +10,6 @@ import '../widgets/countdown_timer.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  static const double _heroHeight = 300;
-  static const double _cardOverlap = 56;
-
   @override
   Widget build(BuildContext context) {
     final trip = context.watch<TripProvider>().trip;
@@ -29,24 +26,9 @@ class HomeScreen extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              SizedBox(
-                height: _heroHeight,
-                width: double.infinity,
-                child: _HeroPhoto(trip: trip),
-              ),
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: -_cardOverlap,
-                child: _TripStatusCard(trip: trip),
-              ),
-            ],
-          ),
+          _CountdownHeroCard(trip: trip),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, _cardOverlap + 20, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -76,155 +58,183 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HeroPhoto extends StatelessWidget {
+/// The big, warm, family-facing countdown hero. This is the first thing a
+/// family member sees when opening the app: the trip photo as a backdrop
+/// with a large, exciting countdown overlaid on top.
+class _CountdownHeroCard extends StatelessWidget {
   final Trip trip;
 
-  const _HeroPhoto({required this.trip});
+  const _CountdownHeroCard({required this.trip});
+
+  static const _gold = Color(0xFFFFC94D);
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d');
 
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset('assets/images/family_hero.jpg', fit: BoxFit.cover),
-          const DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.transparent, Colors.black87],
-                stops: [0.35, 1.0],
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
+      child: SizedBox(
+        height: 440,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset('assets/images/family_hero.jpg', fit: BoxFit.cover),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x00000000),
+                    Color(0x992E1608),
+                    Color(0xE83E1204),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
               ),
             ),
-          ),
-          Positioned(
-            left: 20,
-            right: 20,
-            bottom: 76,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Text(trip.heroEmoji, style: const TextStyle(fontSize: 30)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        trip.name,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text('👨‍👩‍👧‍👦', style: TextStyle(fontSize: 18)),
+                      const SizedBox(width: 8),
+                      Text(
+                        _eyebrow(),
                         style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          shadows: [Shadow(blurRadius: 8, color: Colors.black45)],
+                          color: _gold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, color: Colors.white70, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      trip.destination,
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)} · ${trip.durationInDays} days',
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildHeadline(context),
+                  const SizedBox(height: 18),
+                  _buildBody(context),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, color: Colors.white70, size: 16),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '${trip.destination} · ${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TripStatusCard extends StatelessWidget {
-  final Trip trip;
-
-  const _TripStatusCard({required this.trip});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [theme.colorScheme.primary, theme.colorScheme.primaryContainer],
+          ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.35),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
       ),
-      child: _buildContent(context),
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  String _eyebrow() {
+    if (trip.hasEnded) return 'ADVENTURE COMPLETE';
+    if (trip.hasStarted) return 'LIVING THE ADVENTURE';
+    return 'FAMILY ADVENTURE AWAITS';
+  }
+
+  Widget _buildHeadline(BuildContext context) {
     if (trip.hasEnded) {
-      return const _StatusHeadline(icon: Icons.emoji_events, text: 'What a trip! 🎉');
+      return const Text(
+        'What a trip! 🎉',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 34,
+          fontWeight: FontWeight.w800,
+          shadows: [Shadow(blurRadius: 10, color: Colors.black45)],
+        ),
+      );
     }
     if (trip.hasStarted) {
       final dayNumber = (DateTime.now().difference(trip.startDate).inDays + 1)
           .clamp(1, trip.durationInDays);
-      return Column(
+      return _BigStat(number: '$dayNumber', suffix: 'of ${trip.durationInDays} days');
+    }
+    final days = trip.timeUntilStart.isNegative ? 0 : trip.timeUntilStart.inDays;
+    return _BigStat(number: '$days', suffix: days == 1 ? 'day to go!' : 'days to go!');
+  }
+
+  Widget _buildBody(BuildContext context) {
+    if (trip.hasEnded) {
+      return Row(
         children: [
-          const _StatusHeadline(icon: Icons.hiking, text: "You're on the trip!"),
-          const SizedBox(height: 8),
-          Text(
-            'Day $dayNumber of ${trip.durationInDays}',
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          Expanded(
+            child: Text(
+              'Relive the memories from ${trip.destination}',
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ),
+          const SizedBox(width: 12),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.white70),
+            ),
+            onPressed: () => Navigator.of(context).pushNamed(AppSection.photosRoute),
+            child: const Text('Photo Journal'),
           ),
         ],
       );
     }
-    return Column(
-      children: [
-        const _StatusHeadline(icon: Icons.flight_takeoff, text: 'Counting down to takeoff'),
-        const SizedBox(height: 16),
-        CountdownTimer(target: trip.startDate),
-      ],
-    );
+    if (trip.hasStarted) {
+      return Text(
+        "We're making memories in ${trip.destination}! 🏕️",
+        style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+      );
+    }
+    return CountdownTimer(target: trip.startDate);
   }
 }
 
-class _StatusHeadline extends StatelessWidget {
-  final IconData icon;
-  final String text;
+class _BigStat extends StatelessWidget {
+  final String number;
+  final String suffix;
 
-  const _StatusHeadline({required this.icon, required this.text});
+  const _BigStat({required this.number, required this.suffix});
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
       children: [
-        Icon(icon, color: Colors.white, size: 20),
-        const SizedBox(width: 8),
         Text(
-          text,
-          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+          number,
+          style: const TextStyle(
+            color: _CountdownHeroCard._gold,
+            fontSize: 72,
+            fontWeight: FontWeight.w900,
+            height: 1,
+            shadows: [Shadow(blurRadius: 12, color: Colors.black54)],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            suffix,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              shadows: [Shadow(blurRadius: 8, color: Colors.black45)],
+            ),
+          ),
         ),
       ],
     );
