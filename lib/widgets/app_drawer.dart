@@ -18,7 +18,14 @@ class AppDrawer extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+              margin: EdgeInsets.zero,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/family_hero.jpg'),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
