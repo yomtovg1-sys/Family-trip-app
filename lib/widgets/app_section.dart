@@ -24,6 +24,7 @@ class AppSection {
   static const String tasksRoute = '/tasks';
   static const String aiAssistantRoute = '/ai-assistant';
   static const String travelWalletRoute = '/travel-wallet';
+  static const String syncBackupRoute = '/sync-backup';
 
   static const home = AppSection(
     route: homeRoute,
@@ -102,6 +103,13 @@ class AppSection {
     color: Color(0xFF6C63FF),
   );
 
+  static const syncBackup = AppSection(
+    route: syncBackupRoute,
+    title: 'Sync & Backup',
+    icon: Icons.cloud_done_rounded,
+    color: Color(0xFF1971C2),
+  );
+
   static const List<AppSection> all = [
     home,
     itinerary,
@@ -114,5 +122,6 @@ class AppSection {
     memories,
     tasks,
     aiAssistant,
+    syncBackup,
   ];
 }

@@ -38,6 +38,15 @@ class PlacesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replaces every saved place for [tripId] with [places] — used to apply a
+  /// backup restore or import, which always carries a trip's full list
+  /// rather than incremental changes.
+  void replaceForTrip(String tripId, List<SavedPlace> places) {
+    _places.removeWhere((p) => p.tripId == tripId);
+    _places.addAll(places);
+    notifyListeners();
+  }
+
   void toggleFavorite(String id) {
     final place = byId(id);
     if (place != null) updatePlace(place.copyWith(isFavorite: !place.isFavorite));

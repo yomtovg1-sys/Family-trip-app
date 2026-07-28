@@ -20,6 +20,14 @@ class MemoriesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replaces every photo for [tripId] with [photos] — used to apply a
+  /// backup restore or import.
+  void replaceForTrip(String tripId, List<MemoryPhoto> photos) {
+    _photos.removeWhere((p) => p.tripId == tripId);
+    _photos.addAll(photos);
+    notifyListeners();
+  }
+
   void updateCaption(String id, String? caption) {
     final index = _photos.indexWhere((p) => p.id == id);
     if (index == -1) return;

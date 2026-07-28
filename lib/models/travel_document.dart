@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
@@ -229,6 +230,30 @@ class TravelDocument {
       uploadedAt: uploadedAt,
       category: category ?? this.category,
       tag: tag ?? this.tag,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'fileName': fileName,
+        'type': type.name,
+        'bytesBase64': base64Encode(bytes),
+        'uploadedAt': uploadedAt.toIso8601String(),
+        'category': category?.name,
+        'tag': tag.name,
+      };
+
+  factory TravelDocument.fromJson(Map<String, dynamic> json) {
+    return TravelDocument(
+      id: json['id'] as String,
+      fileName: json['fileName'] as String,
+      type: AttachmentType.values.byName(json['type'] as String),
+      bytes: base64Decode(json['bytesBase64'] as String),
+      uploadedAt: DateTime.parse(json['uploadedAt'] as String),
+      category: json['category'] != null
+          ? TripDocumentCategory.values.byName(json['category'] as String)
+          : null,
+      tag: json['tag'] != null ? DocumentTag.values.byName(json['tag'] as String) : DocumentTag.other,
     );
   }
 }

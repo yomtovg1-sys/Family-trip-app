@@ -194,4 +194,48 @@ class Reservation {
   }
 
   bool get isUpcoming => status == ReservationStatus.upcoming;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'tripId': tripId,
+        'category': category.name,
+        'subtype': subtype,
+        'title': title,
+        'dateTime': dateTime.toIso8601String(),
+        'endDateTime': endDateTime?.toIso8601String(),
+        'location': location,
+        'confirmationNumber': confirmationNumber,
+        'provider': provider,
+        'phone': phone,
+        'website': website,
+        'notes': notes,
+        'status': status.name,
+        'attachments': [for (final a in attachments) a.toJson()],
+      };
+
+  factory Reservation.fromJson(Map<String, dynamic> json) {
+    return Reservation(
+      id: json['id'] as String,
+      tripId: json['tripId'] as String,
+      category: ReservationCategory.values.byName(json['category'] as String),
+      subtype: json['subtype'] as String?,
+      title: json['title'] as String,
+      dateTime: DateTime.parse(json['dateTime'] as String),
+      endDateTime:
+          json['endDateTime'] != null ? DateTime.parse(json['endDateTime'] as String) : null,
+      location: json['location'] as String,
+      confirmationNumber: json['confirmationNumber'] as String,
+      provider: json['provider'] as String,
+      phone: json['phone'] as String?,
+      website: json['website'] as String?,
+      notes: json['notes'] as String?,
+      status: json['status'] != null
+          ? ReservationStatus.values.byName(json['status'] as String)
+          : ReservationStatus.upcoming,
+      attachments: [
+        for (final a in (json['attachments'] as List? ?? const []))
+          TravelDocument.fromJson(a as Map<String, dynamic>),
+      ],
+    );
+  }
 }

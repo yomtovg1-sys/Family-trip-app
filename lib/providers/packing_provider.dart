@@ -29,4 +29,14 @@ class PackingProvider extends ChangeNotifier {
     _items.add(item);
     notifyListeners();
   }
+
+  /// Replaces the whole packing list — used to apply a backup restore. The
+  /// packing list isn't scoped per trip today, so this always replaces
+  /// everything rather than one trip's share of it.
+  void replaceAll(List<PackingItem> items) {
+    _items
+      ..clear()
+      ..addAll(items);
+    notifyListeners();
+  }
 }

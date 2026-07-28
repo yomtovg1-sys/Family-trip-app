@@ -75,6 +75,14 @@ class ReservationsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Replaces every reservation for [tripId] with [reservations] — used to
+  /// apply a backup restore or import.
+  void replaceForTrip(String tripId, List<Reservation> reservations) {
+    _reservations.removeWhere((r) => r.tripId == tripId);
+    _reservations.addAll(reservations);
+    notifyListeners();
+  }
+
   void setStatus(String id, ReservationStatus status) {
     final r = byId(id);
     if (r != null) updateReservation(r.copyWith(status: status));

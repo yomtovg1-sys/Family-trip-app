@@ -120,4 +120,33 @@ class ExpenseEntry {
     if (notes != null && notes!.trim().isNotEmpty) return notes!.trim();
     return category.label;
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'amount': amount,
+        'currency': currency,
+        'category': category.name,
+        'date': date.toIso8601String(),
+        'merchant': merchant,
+        'notes': notes,
+        'vatAmount': vatAmount,
+        'paymentMethod': paymentMethod,
+        'receipt': receipt?.toJson(),
+      };
+
+  factory ExpenseEntry.fromJson(Map<String, dynamic> json) {
+    return ExpenseEntry(
+      id: json['id'] as String,
+      amount: (json['amount'] as num).toDouble(),
+      currency: json['currency'] as String,
+      category: ExpenseCategory.values.byName(json['category'] as String),
+      date: DateTime.parse(json['date'] as String),
+      merchant: json['merchant'] as String?,
+      notes: json['notes'] as String?,
+      vatAmount: (json['vatAmount'] as num?)?.toDouble(),
+      paymentMethod: json['paymentMethod'] as String?,
+      receipt:
+          json['receipt'] != null ? TravelDocument.fromJson(json['receipt'] as Map<String, dynamic>) : null,
+    );
+  }
 }

@@ -4,6 +4,7 @@ import '../models/journey_stop.dart';
 import '../models/travel_alert.dart';
 import '../models/travel_document.dart';
 import '../models/trip.dart';
+import '../models/trip_snapshot.dart';
 import '../models/weather_snapshot.dart';
 import '../utils/placeholder_bytes.dart';
 
@@ -202,6 +203,34 @@ class TripProvider extends ChangeNotifier {
 
   void addExpense(String tripId, ExpenseEntry expense) {
     _dashboardFor(tripId)?.expenses.add(expense);
+    notifyListeners();
+  }
+
+  /// Applies a [TripSnapshot] from a backup restore or import: replaces the
+  /// matching trip's core data (trip fields, journey stops, expenses,
+  /// trip-level documents), or adds it as a new trip if it doesn't exist
+  /// locally yet. Weather and passport-expiry aren't part of the backup
+  /// payload, so they carry over from the existing dashboard when there is
+  /// one.
+  void restoreTripSnapshot(TripSnapshot snapshot) {
+    final index = _dashboards.indexWhere((d) => d.trip.id == snapshot.trip.id);
+    final restored = TripDashboard(
+      trip: snapshot.trip,
+      journeyStops: snapshot.journeyStops.isNotEmpty
+          ? snapshot.journeyStops
+          : [JourneyStop(location: snapshot.trip.destination, start: snapshot.trip.startDate, end: snapshot.trip.endDate)],
+      weather: index != -1 ? _dashboards[index].weather : null,
+      expenses: List.of(snapshot.expenses),
+      documents: List.of(snapshot.documents),
+      passportExpiryDate: index != -1 ? _dashboards[index].passportExpiryDate : null,
+    );
+
+    if (index != -1) {
+      _dashboards[index] = restored;
+    } else {
+      _dashboards.add(restored);
+      _selectedIndex = _dashboards.length - 1;
+    }
     notifyListeners();
   }
 

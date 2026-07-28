@@ -206,4 +206,36 @@ class SavedPlace {
   /// time we don't already have a real share URL (e.g. manual entries).
   String get mapsSearchUrl =>
       'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'tripId': tripId,
+        'name': name,
+        'latitude': latitude,
+        'longitude': longitude,
+        'category': category.name,
+        'area': area,
+        'notes': notes,
+        'isFavorite': isFavorite,
+        'googleMapsUrl': googleMapsUrl,
+        'source': source.name,
+      };
+
+  factory SavedPlace.fromJson(Map<String, dynamic> json) {
+    return SavedPlace(
+      id: json['id'] as String,
+      tripId: json['tripId'] as String,
+      name: json['name'] as String,
+      latitude: (json['latitude'] as num).toDouble(),
+      longitude: (json['longitude'] as num).toDouble(),
+      category: PlaceCategory.values.byName(json['category'] as String),
+      area: json['area'] as String,
+      notes: json['notes'] as String?,
+      isFavorite: json['isFavorite'] as bool? ?? false,
+      googleMapsUrl: json['googleMapsUrl'] as String?,
+      source: json['source'] != null
+          ? PlaceSource.values.byName(json['source'] as String)
+          : PlaceSource.manual,
+    );
+  }
 }

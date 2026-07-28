@@ -256,6 +256,13 @@ class HomeScreen extends StatelessWidget {
         onTap: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const AIAssistantScreen())),
       ),
+      _QuickAccessCard(
+        title: 'Sync & Backup',
+        subtitle: 'Your data, safely saved',
+        icon: Icons.cloud_done_rounded,
+        color: const Color(0xFF1971C2),
+        onTap: () => go(AppSection.syncBackupRoute),
+      ),
     ];
   }
 }

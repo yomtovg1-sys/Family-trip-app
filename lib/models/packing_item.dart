@@ -12,4 +12,22 @@ class PackingItem {
     required this.assignedTo,
     this.isPacked = false,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'category': category,
+        'assignedTo': assignedTo,
+        'isPacked': isPacked,
+      };
+
+  factory PackingItem.fromJson(Map<String, dynamic> json) {
+    return PackingItem(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      category: json['category'] as String,
+      assignedTo: json['assignedTo'] as String,
+      isPacked: json['isPacked'] as bool? ?? false,
+    );
+  }
 }
