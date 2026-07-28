@@ -136,6 +136,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 2)),
+            tag: DocumentTag.flight,
           ),
         ],
       ),
@@ -172,6 +173,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 8)),
+            tag: DocumentTag.hotel,
           ),
           TravelDocument(
             id: 'a3',
@@ -179,6 +181,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.image,
             bytes: placeholderImageBytes,
             uploadedAt: now.subtract(const Duration(days: 1)),
+            tag: DocumentTag.hotel,
           ),
         ],
       ),
@@ -195,6 +198,16 @@ class ReservationsProvider extends ChangeNotifier {
         provider: 'Tahoe Adventure Co.',
         website: 'https://www.tahoeadventureco.com',
         notes: 'Life jackets provided for kids.',
+        attachments: [
+          TravelDocument(
+            id: 'a4',
+            fileName: 'Kayak Tour Voucher.pdf',
+            type: AttachmentType.pdf,
+            bytes: placeholderDocumentBytes,
+            uploadedAt: now.subtract(const Duration(hours: 12)),
+            tag: DocumentTag.tickets,
+          ),
+        ],
       ),
 
       // --- Japan (far-future trip) ---

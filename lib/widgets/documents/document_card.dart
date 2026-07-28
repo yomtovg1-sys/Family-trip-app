@@ -75,6 +75,23 @@ class DocumentCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (document.looksLikeQrCode || document.tag != DocumentTag.other)
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: document.looksLikeQrCode ? Colors.black87 : document.tag.color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          document.looksLikeQrCode ? Icons.qr_code_rounded : document.tag.icon,
+                          color: Colors.white,
+                          size: 13,
+                        ),
+                      ),
+                    ),
                 ],
               ),
               Padding(

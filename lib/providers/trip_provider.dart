@@ -314,6 +314,7 @@ class TripProvider extends ChangeNotifier {
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 12)),
             category: TripDocumentCategory.passport,
+            tag: DocumentTag.passport,
           ),
           TravelDocument(
             id: 'doc2',
@@ -322,6 +323,7 @@ class TripProvider extends ChangeNotifier {
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 9)),
             category: TripDocumentCategory.insurance,
+            tag: DocumentTag.insurance,
           ),
           TravelDocument(
             id: 'doc3',
@@ -330,6 +332,7 @@ class TripProvider extends ChangeNotifier {
             bytes: placeholderImageBytes,
             uploadedAt: now.subtract(const Duration(days: 6)),
             category: TripDocumentCategory.emergencyContacts,
+            tag: DocumentTag.other,
           ),
         ],
       ),

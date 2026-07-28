@@ -78,6 +78,24 @@ extension ReservationCategoryX on ReservationCategory {
         return const Color(0xFF6C63FF);
     }
   }
+
+  /// The sensible default [DocumentTag] for a document uploaded to a
+  /// reservation of this category, so every upload gets a useful tag
+  /// without an extra picker step.
+  DocumentTag get defaultDocumentTag {
+    switch (this) {
+      case ReservationCategory.flight:
+        return DocumentTag.flight;
+      case ReservationCategory.hotel:
+        return DocumentTag.hotel;
+      case ReservationCategory.transportation:
+        return DocumentTag.carRental;
+      case ReservationCategory.ticket:
+        return DocumentTag.tickets;
+      case ReservationCategory.other:
+        return DocumentTag.other;
+    }
+  }
 }
 
 enum ReservationStatus { upcoming, completed, cancelled }

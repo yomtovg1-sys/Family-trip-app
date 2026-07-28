@@ -218,7 +218,10 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       context,
       onPicked: (documents) {
         for (final document in documents) {
-          provider.addAttachment(reservation.id, document);
+          provider.addAttachment(
+            reservation.id,
+            document.copyWith(tag: reservation.category.defaultDocumentTag),
+          );
         }
       },
     );

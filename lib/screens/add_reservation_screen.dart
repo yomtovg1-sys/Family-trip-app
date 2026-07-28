@@ -275,7 +275,9 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   Future<void> _addAttachments() async {
     await showAddDocumentSheet(
       context,
-      onPicked: (documents) => setState(() => _attachments.addAll(documents)),
+      onPicked: (documents) => setState(() => _attachments.addAll(
+            documents.map((d) => d.copyWith(tag: _category.defaultDocumentTag)),
+          )),
     );
   }
 
