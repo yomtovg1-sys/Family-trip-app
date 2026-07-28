@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/photo_entry.dart';
+import '../models/memory_photo.dart';
 
 class MemoriesPreview extends StatelessWidget {
-  final List<PhotoEntry> photos;
+  final List<MemoryPhoto> photos;
   final VoidCallback onOpenJournal;
 
   const MemoriesPreview({super.key, required this.photos, required this.onOpenJournal});
@@ -53,32 +53,14 @@ class MemoriesPreview extends StatelessWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
                 final photo = recent[index];
-                return Stack(
-                  children: [
-                    Container(
-                      width: 76,
-                      height: 76,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: Text(photo.emoji, style: const TextStyle(fontSize: 30)),
-                    ),
-                    if (photo.isFavorite)
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFFFC94D),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.star_rounded, color: Colors.white, size: 12),
-                        ),
-                      ),
-                  ],
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Image.memory(
+                    photo.bytes,
+                    width: 76,
+                    height: 76,
+                    fit: BoxFit.cover,
+                  ),
                 );
               },
             ),

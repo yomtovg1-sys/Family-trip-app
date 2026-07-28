@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/reservation.dart';
 import '../models/trip.dart';
-import '../providers/photo_journal_provider.dart';
+import '../providers/memories_provider.dart';
 import '../providers/places_provider.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
     final nextReservation = reservationsProvider.nextUpcoming(dashboard.trip.id);
     final walletDocumentCount = dashboard.documents.length +
         tripReservations.fold<int>(0, (sum, r) => sum + r.attachments.length);
-    final photos = context.watch<PhotoJournalProvider>().forTrip(dashboard.trip.id);
+    final photos = context.watch<MemoriesProvider>().forTrip(dashboard.trip.id);
     final placesCount = context.watch<PlacesProvider>().forTrip(dashboard.trip.id).length;
     final theme = Theme.of(context);
 
