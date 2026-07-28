@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/itinerary_provider.dart';
 import 'providers/packing_provider.dart';
 import 'providers/photo_journal_provider.dart';
+import 'providers/places_provider.dart';
 import 'providers/reservations_provider.dart';
 import 'providers/tasks_provider.dart';
 import 'providers/trip_provider.dart';
@@ -35,6 +36,7 @@ class FamilyTripApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ItineraryProvider()),
         ChangeNotifierProvider(create: (_) => PackingProvider()),
         ChangeNotifierProvider(create: (_) => ReservationsProvider()),
+        ChangeNotifierProvider(create: (_) => PlacesProvider()),
         ChangeNotifierProvider(create: (_) => PhotoJournalProvider()),
         ChangeNotifierProvider(create: (_) => TasksProvider()),
       ],

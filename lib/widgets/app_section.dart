@@ -40,7 +40,7 @@ class AppSection {
 
   static const map = AppSection(
     route: mapRoute,
-    title: 'Map',
+    title: 'Map & Places',
     icon: Icons.map_rounded,
     color: Color(0xFF2F9E44),
   );

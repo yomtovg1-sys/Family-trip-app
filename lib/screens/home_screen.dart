@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/reservation.dart';
 import '../models/trip.dart';
 import '../providers/photo_journal_provider.dart';
+import '../providers/places_provider.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
 import '../screens/ai_assistant_screen.dart';
@@ -37,6 +38,7 @@ class HomeScreen extends StatelessWidget {
     final walletDocumentCount = dashboard.documents.length +
         tripReservations.fold<int>(0, (sum, r) => sum + r.attachments.length);
     final photos = context.watch<PhotoJournalProvider>().forTrip(dashboard.trip.id);
+    final placesCount = context.watch<PlacesProvider>().forTrip(dashboard.trip.id).length;
     final theme = Theme.of(context);
 
     var step = 0;
@@ -145,6 +147,7 @@ class HomeScreen extends StatelessWidget {
                       nextReservation: nextReservation,
                       photoCount: photos.length,
                       walletDocumentCount: walletDocumentCount,
+                      placesCount: placesCount,
                     ))
                       _Reveal(delay: nextDelay(), child: item),
                   ],
@@ -185,6 +188,7 @@ class HomeScreen extends StatelessWidget {
     required Reservation? nextReservation,
     required int photoCount,
     required int walletDocumentCount,
+    required int placesCount,
   }) {
     String relativeDay(DateTime target) {
       final diff = target.difference(DateTime.now()).inDays;
@@ -205,7 +209,7 @@ class HomeScreen extends StatelessWidget {
       ),
       _QuickAccessCard(
         title: 'Places',
-        subtitle: 'Discover nearby spots',
+        subtitle: placesCount == 0 ? 'Discover nearby spots' : '$placesCount saved spots',
         icon: Icons.travel_explore_rounded,
         color: const Color(0xFFE8590C),
         onTap: () => go(AppSection.mapRoute),
