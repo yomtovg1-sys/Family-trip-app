@@ -58,7 +58,7 @@ class FamilyTripApp extends StatelessWidget {
           AppSection.travelWalletRoute: (_) => const TravelWalletScreen(),
           AppSection.photosRoute: (_) => const MemoriesScreen(),
           AppSection.tasksRoute: (_) => const TasksScreen(),
-          AppSection.aiAssistantRoute: (_) => const AiAssistantScreen(),
+          AppSection.aiAssistantRoute: (_) => const AIAssistantScreen(),
         },
       ),
     );

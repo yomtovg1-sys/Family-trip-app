@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
-
-const List<String> aiSuggestedPrompts = [
-  'What should we do today?',
-  'Find restaurants nearby',
-  'Suggest activities based on the weather',
-  "Optimize today's route",
-  'Help manage expenses',
-];
+import '../models/ai_quick_action.dart';
 
 class AiAssistantCard extends StatelessWidget {
   final void Function(String? initialPrompt) onOpen;
@@ -103,10 +96,10 @@ class AiAssistantCard extends StatelessWidget {
             height: 34,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: aiSuggestedPrompts.length,
+              itemCount: aiHomeSuggestions.length,
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                final prompt = aiSuggestedPrompts[index];
+                final prompt = aiHomeSuggestions[index];
                 return Material(
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(20),

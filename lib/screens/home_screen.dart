@@ -158,7 +158,7 @@ class HomeScreen extends StatelessWidget {
                   child: AiAssistantCard(
                     onOpen: (prompt) => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => AiAssistantScreen(initialPrompt: prompt),
+                        builder: (_) => AIAssistantScreen(initialPrompt: prompt),
                       ),
                     ),
                   ),
@@ -254,7 +254,7 @@ class HomeScreen extends StatelessWidget {
         icon: Icons.auto_awesome_rounded,
         color: const Color(0xFF6C63FF),
         onTap: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const AiAssistantScreen())),
+            .push(MaterialPageRoute(builder: (_) => const AIAssistantScreen())),
       ),
     ];
   }
