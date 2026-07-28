@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'reservation_attachment.dart';
+import 'travel_document.dart';
 
 enum ReservationCategory { flight, hotel, transportation, ticket, other }
 
@@ -121,7 +121,7 @@ class Reservation {
   final String? website;
   final String? notes;
   final ReservationStatus status;
-  final List<ReservationAttachment> attachments;
+  final List<TravelDocument> attachments;
 
   const Reservation({
     required this.id,
@@ -154,7 +154,7 @@ class Reservation {
     String? website,
     String? notes,
     ReservationStatus? status,
-    List<ReservationAttachment>? attachments,
+    List<TravelDocument>? attachments,
   }) {
     return Reservation(
       id: id,

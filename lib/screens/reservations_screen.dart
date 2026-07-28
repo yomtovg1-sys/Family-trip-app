@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import '../models/reservation.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
-import '../services/reservation_extractor.dart';
-import '../services/attachment_picker.dart';
+import '../services/document_extractor.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/reservations/reservation_tile.dart';
 import '../widgets/reservations/upcoming_reservation_card.dart';
 import 'add_reservation_screen.dart';
@@ -328,17 +328,10 @@ class _TypeTile extends StatelessWidget {
   }
 }
 
-class _AddReservationMethodSheet extends StatefulWidget {
+class _AddReservationMethodSheet extends StatelessWidget {
   final ReservationCategory category;
 
   const _AddReservationMethodSheet({required this.category});
-
-  @override
-  State<_AddReservationMethodSheet> createState() => _AddReservationMethodSheetState();
-}
-
-class _AddReservationMethodSheetState extends State<_AddReservationMethodSheet> {
-  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -357,7 +350,7 @@ class _AddReservationMethodSheetState extends State<_AddReservationMethodSheet> 
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${widget.category.emoji} New ${widget.category.singularLabel}',
+              '${category.emoji} New ${category.singularLabel}',
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 18),
@@ -373,7 +366,7 @@ class _AddReservationMethodSheetState extends State<_AddReservationMethodSheet> 
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => AddReservationScreen(category: widget.category),
+                    builder: (_) => AddReservationScreen(category: category),
                   ),
                 );
               },
@@ -382,17 +375,14 @@ class _AddReservationMethodSheetState extends State<_AddReservationMethodSheet> 
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
                 backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                child: _loading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(Icons.upload_file_rounded, color: theme.colorScheme.primary),
+                child: Icon(Icons.upload_file_rounded, color: theme.colorScheme.primary),
               ),
               title: const Text('Upload a document first'),
               subtitle: const Text('Boarding pass, voucher, PDF, or screenshot'),
-              onTap: _loading ? null : _uploadFirst,
+              onTap: () {
+                Navigator.of(context).pop();
+                _uploadFirst(context);
+              },
             ),
           ],
         ),
@@ -400,24 +390,24 @@ class _AddReservationMethodSheetState extends State<_AddReservationMethodSheet> 
     );
   }
 
-  Future<void> _uploadFirst() async {
-    final attachments = await pickAttachments(allowMultiple: false);
-    if (attachments.isEmpty || !mounted) return;
-
-    setState(() => _loading = true);
-    const extractor = MockReservationExtractor();
-    final draft = await extractor.extract(attachments.first);
-    if (!mounted) return;
-
-    Navigator.of(context).pop();
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => AddReservationScreen(
-          category: widget.category,
-          initialAttachment: attachments.first,
-          draft: draft,
-        ),
-      ),
+  Future<void> _uploadFirst(BuildContext context) async {
+    await showAddDocumentSheet(
+      context,
+      onPicked: (documents) async {
+        if (documents.isEmpty) return;
+        const extractor = MockDocumentExtractor();
+        final draft = await extractor.extract(documents.first);
+        if (!context.mounted) return;
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => AddReservationScreen(
+              category: category,
+              initialAttachment: documents.first,
+              draft: draft,
+            ),
+          ),
+        );
+      },
     );
   }
 }

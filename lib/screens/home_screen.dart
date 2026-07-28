@@ -28,8 +28,11 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dashboard = context.watch<TripProvider>().current;
     final reservationsProvider = context.watch<ReservationsProvider>();
-    final reservationsCount = reservationsProvider.forTrip(dashboard.trip.id).length;
+    final tripReservations = reservationsProvider.forTrip(dashboard.trip.id);
+    final reservationsCount = tripReservations.length;
     final nextReservation = reservationsProvider.nextUpcoming(dashboard.trip.id);
+    final walletDocumentCount = dashboard.documents.length +
+        tripReservations.fold<int>(0, (sum, r) => sum + r.attachments.length);
     final photos = context.watch<PhotoJournalProvider>().forTrip(dashboard.trip.id);
     final theme = Theme.of(context);
 
@@ -119,6 +122,7 @@ class HomeScreen extends StatelessWidget {
                       reservationsCount: reservationsCount,
                       nextReservation: nextReservation,
                       photoCount: photos.length,
+                      walletDocumentCount: walletDocumentCount,
                     ))
                       _Reveal(delay: nextDelay(), child: item),
                   ],
@@ -158,6 +162,7 @@ class HomeScreen extends StatelessWidget {
     required int reservationsCount,
     required Reservation? nextReservation,
     required int photoCount,
+    required int walletDocumentCount,
   }) {
     String relativeDay(DateTime target) {
       final diff = target.difference(DateTime.now()).inDays;
@@ -207,6 +212,15 @@ class HomeScreen extends StatelessWidget {
         icon: Icons.confirmation_number_rounded,
         color: const Color(0xFF6741D9),
         onTap: () => go(AppSection.reservationsRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Travel Wallet',
+        subtitle: walletDocumentCount == 0
+            ? 'No documents yet'
+            : '$walletDocumentCount documents',
+        icon: Icons.account_balance_wallet_rounded,
+        color: const Color(0xFF1F7A5C),
+        onTap: () => go(AppSection.travelWalletRoute),
       ),
       _QuickAccessCard(
         title: 'AI Assistant',

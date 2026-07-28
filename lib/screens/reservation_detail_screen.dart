@@ -5,16 +5,22 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/reservation.dart';
+import '../models/travel_document.dart';
 import '../providers/reservations_provider.dart';
-import '../services/attachment_picker.dart';
-import '../widgets/reservations/attachment_card.dart';
+import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/documents/document_card.dart';
 import 'add_reservation_screen.dart';
-import 'attachment_viewer_screen.dart';
+import 'document_viewer_screen.dart';
 
 class ReservationDetailScreen extends StatefulWidget {
   final String reservationId;
+  final bool scrollToDocuments;
 
-  const ReservationDetailScreen({super.key, required this.reservationId});
+  const ReservationDetailScreen({
+    super.key,
+    required this.reservationId,
+    this.scrollToDocuments = false,
+  });
 
   @override
   State<ReservationDetailScreen> createState() => _ReservationDetailScreenState();
@@ -22,6 +28,14 @@ class ReservationDetailScreen extends StatefulWidget {
 
 class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final _attachmentsKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.scrollToDocuments) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToAttachments());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,24 +184,20 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             spacing: 12,
             runSpacing: 12,
             children: [
-              for (final attachment in reservation.attachments)
-                AttachmentCard(
-                  attachment: attachment,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => AttachmentViewerScreen(
-                        attachment: attachment,
-                        onDelete: () => context
-                            .read<ReservationsProvider>()
-                            .removeAttachment(reservation.id, attachment.id),
-                      ),
-                    ),
-                  ),
+              for (final document in reservation.attachments)
+                DocumentCard(
+                  document: document,
+                  onPreview: () => _openViewer(context, reservation, document),
+                  onRename: (newName) => context
+                      .read<ReservationsProvider>()
+                      .renameAttachment(reservation.id, document.id, newName),
+                  onShare: () => _shareFile(document),
+                  onDownload: () => _shareFile(document),
                   onDelete: () => context
                       .read<ReservationsProvider>()
-                      .removeAttachment(reservation.id, attachment.id),
+                      .removeAttachment(reservation.id, document.id),
                 ),
-              AddAttachmentTile(onTap: () => _uploadAttachment(context, reservation)),
+              AddDocumentTile(onTap: () => _uploadDocuments(context, reservation)),
             ],
           ),
         ],
@@ -202,13 +212,36 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     }
   }
 
-  Future<void> _uploadAttachment(BuildContext context, Reservation reservation) async {
-    final attachments = await pickAttachments();
-    if (!context.mounted) return;
+  Future<void> _uploadDocuments(BuildContext context, Reservation reservation) async {
     final provider = context.read<ReservationsProvider>();
-    for (final attachment in attachments) {
-      provider.addAttachment(reservation.id, attachment);
-    }
+    await showAddDocumentSheet(
+      context,
+      onPicked: (documents) {
+        for (final document in documents) {
+          provider.addAttachment(reservation.id, document);
+        }
+      },
+    );
+  }
+
+  void _openViewer(BuildContext context, Reservation reservation, TravelDocument document) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DocumentViewerScreen(
+          document: document,
+          onRename: (newName) => context
+              .read<ReservationsProvider>()
+              .renameAttachment(reservation.id, document.id, newName),
+          onDelete: () => context
+              .read<ReservationsProvider>()
+              .removeAttachment(reservation.id, document.id),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareFile(TravelDocument document) async {
+    await Share.shareXFiles([XFile.fromData(document.bytes, name: document.fileName)]);
   }
 
   void _copyConfirmation(BuildContext context, String value) {

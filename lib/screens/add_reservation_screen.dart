@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/reservation.dart';
-import '../models/reservation_attachment.dart';
 import '../models/reservation_draft.dart';
+import '../models/travel_document.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
-import '../services/attachment_picker.dart';
-import '../widgets/reservations/attachment_card.dart';
+import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/documents/document_card.dart';
+import 'document_viewer_screen.dart';
 
 class AddReservationScreen extends StatefulWidget {
   final ReservationCategory? category;
-  final ReservationAttachment? initialAttachment;
+  final TravelDocument? initialAttachment;
   final ReservationDraft? draft;
   final Reservation? editing;
 
@@ -33,7 +35,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   late ReservationStatus _status;
   late DateTime _date;
   late TimeOfDay _time;
-  late List<ReservationAttachment> _attachments;
+  late List<TravelDocument> _attachments;
 
   late final TextEditingController _titleController;
   late final TextEditingController _subtypeController;
@@ -228,13 +230,19 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
               spacing: 12,
               runSpacing: 12,
               children: [
-                for (final attachment in _attachments)
-                  AttachmentCard(
-                    attachment: attachment,
-                    onTap: () {},
-                    onDelete: () => setState(() => _attachments.remove(attachment)),
+                for (final document in _attachments)
+                  DocumentCard(
+                    document: document,
+                    onPreview: () => _previewDocument(document),
+                    onRename: (newName) => setState(() {
+                      final index = _attachments.indexOf(document);
+                      _attachments[index] = document.copyWith(fileName: newName);
+                    }),
+                    onShare: () => _shareDocument(document),
+                    onDownload: () => _shareDocument(document),
+                    onDelete: () => setState(() => _attachments.remove(document)),
                   ),
-                AddAttachmentTile(onTap: _addAttachments),
+                AddDocumentTile(onTap: _addAttachments),
               ],
             ),
             const SizedBox(height: 28),
@@ -265,8 +273,29 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   }
 
   Future<void> _addAttachments() async {
-    final picked = await pickAttachments();
-    if (picked.isNotEmpty) setState(() => _attachments.addAll(picked));
+    await showAddDocumentSheet(
+      context,
+      onPicked: (documents) => setState(() => _attachments.addAll(documents)),
+    );
+  }
+
+  void _previewDocument(TravelDocument document) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => DocumentViewerScreen(
+          document: document,
+          onRename: (newName) => setState(() {
+            final index = _attachments.indexOf(document);
+            _attachments[index] = document.copyWith(fileName: newName);
+          }),
+          onDelete: () => setState(() => _attachments.remove(document)),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareDocument(TravelDocument document) async {
+    await Share.shareXFiles([XFile.fromData(document.bytes, name: document.fileName)]);
   }
 
   void _save() {

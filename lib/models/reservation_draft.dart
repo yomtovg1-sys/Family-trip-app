@@ -1,8 +1,8 @@
 import 'reservation.dart';
 
 /// Partial reservation fields recognized from an uploaded document. Produced
-/// by a [ReservationExtractor] and used to pre-fill the manual reservation
-/// form so the traveler only has to confirm/correct fields instead of typing
+/// by a [DocumentExtractor] and used to pre-fill the manual reservation form
+/// so the traveler only has to confirm/correct fields instead of typing
 /// everything from scratch.
 class ReservationDraft {
   final String? title;
@@ -11,6 +11,7 @@ class ReservationDraft {
   final String? location;
   final String? confirmationNumber;
   final String? provider;
+  final String? flightNumber;
 
   const ReservationDraft({
     this.title,
@@ -19,6 +20,7 @@ class ReservationDraft {
     this.location,
     this.confirmationNumber,
     this.provider,
+    this.flightNumber,
   });
 
   bool get isEmpty =>
@@ -27,5 +29,6 @@ class ReservationDraft {
       dateTime == null &&
       location == null &&
       confirmationNumber == null &&
-      provider == null;
+      provider == null &&
+      flightNumber == null;
 }

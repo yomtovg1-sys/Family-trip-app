@@ -2,20 +2,24 @@ import 'package:flutter/material.dart';
 import '../models/expense_entry.dart';
 import '../models/journey_stop.dart';
 import '../models/travel_alert.dart';
+import '../models/travel_document.dart';
 import '../models/trip.dart';
 import '../models/weather_snapshot.dart';
+import '../utils/placeholder_bytes.dart';
 
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
 /// Everything the Home dashboard needs for one trip: the trip itself, its
-/// route/journey, a weather snapshot, running expenses, and an optional
-/// passport-expiry date used to derive alerts.
+/// route/journey, a weather snapshot, running expenses, trip-level travel
+/// wallet documents, and an optional passport-expiry date used to derive
+/// alerts.
 class TripDashboard {
   final Trip trip;
   final List<JourneyStop> journeyStops;
   final WeatherSnapshot? weather;
   final List<ExpenseEntry> expenses;
+  final List<TravelDocument> documents;
   final DateTime? passportExpiryDate;
 
   TripDashboard({
@@ -23,8 +27,9 @@ class TripDashboard {
     required this.journeyStops,
     required this.weather,
     required this.expenses,
+    List<TravelDocument>? documents,
     this.passportExpiryDate,
-  });
+  }) : documents = documents ?? [];
 
   /// The journey stop that should currently be highlighted: the first stop
   /// if the trip hasn't started yet, the last stop if it's over, or the
@@ -168,6 +173,33 @@ class TripProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  TripDashboard? _dashboardFor(String tripId) {
+    for (final d in _dashboards) {
+      if (d.trip.id == tripId) return d;
+    }
+    return null;
+  }
+
+  void addTripDocument(String tripId, TravelDocument document) {
+    _dashboardFor(tripId)?.documents.add(document);
+    notifyListeners();
+  }
+
+  void renameTripDocument(String tripId, String documentId, String newName) {
+    final documents = _dashboardFor(tripId)?.documents;
+    if (documents == null) return;
+    final index = documents.indexWhere((d) => d.id == documentId);
+    if (index != -1) {
+      documents[index] = documents[index].copyWith(fileName: newName);
+      notifyListeners();
+    }
+  }
+
+  void removeTripDocument(String tripId, String documentId) {
+    _dashboardFor(tripId)?.documents.removeWhere((d) => d.id == documentId);
+    notifyListeners();
+  }
+
   static List<TripDashboard> _seedDashboards() {
     final now = DateTime.now();
 
@@ -272,6 +304,32 @@ class TripProvider extends ChangeNotifier {
             amount: 60,
             category: ExpenseCategory.shopping,
             date: now,
+          ),
+        ],
+        documents: [
+          TravelDocument(
+            id: 'doc1',
+            fileName: 'Family Passports.pdf',
+            type: AttachmentType.pdf,
+            bytes: placeholderDocumentBytes,
+            uploadedAt: now.subtract(const Duration(days: 12)),
+            category: TripDocumentCategory.passport,
+          ),
+          TravelDocument(
+            id: 'doc2',
+            fileName: 'Travel Insurance Policy.pdf',
+            type: AttachmentType.pdf,
+            bytes: placeholderDocumentBytes,
+            uploadedAt: now.subtract(const Duration(days: 9)),
+            category: TripDocumentCategory.insurance,
+          ),
+          TravelDocument(
+            id: 'doc3',
+            fileName: 'Emergency Contacts.png',
+            type: AttachmentType.image,
+            bytes: placeholderImageBytes,
+            uploadedAt: now.subtract(const Duration(days: 6)),
+            category: TripDocumentCategory.emergencyContacts,
           ),
         ],
       ),

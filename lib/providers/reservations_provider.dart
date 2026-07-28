@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/reservation.dart';
-import '../models/reservation_attachment.dart';
+import '../models/travel_document.dart';
+import '../utils/placeholder_bytes.dart';
 
 class ReservationsProvider extends ChangeNotifier {
   final List<Reservation> _reservations = _seedReservations();
@@ -79,11 +80,24 @@ class ReservationsProvider extends ChangeNotifier {
     if (r != null) updateReservation(r.copyWith(status: status));
   }
 
-  void addAttachment(String reservationId, ReservationAttachment attachment) {
+  void addAttachment(String reservationId, TravelDocument attachment) {
     final r = byId(reservationId);
     if (r != null) {
       updateReservation(r.copyWith(attachments: [...r.attachments, attachment]));
     }
+  }
+
+  void renameAttachment(String reservationId, String attachmentId, String newName) {
+    final r = byId(reservationId);
+    if (r == null) return;
+    updateReservation(
+      r.copyWith(
+        attachments: [
+          for (final a in r.attachments)
+            if (a.id == attachmentId) a.copyWith(fileName: newName) else a,
+        ],
+      ),
+    );
   }
 
   void removeAttachment(String reservationId, String attachmentId) {
@@ -115,6 +129,15 @@ class ReservationsProvider extends ChangeNotifier {
         phone: '+1 800-221-1212',
         website: 'https://www.delta.com',
         notes: '2 adults, 2 children. Seats 14A-14D.',
+        attachments: [
+          TravelDocument(
+            id: 'a1',
+            fileName: 'Boarding Passes.pdf',
+            type: AttachmentType.pdf,
+            bytes: placeholderDocumentBytes,
+            uploadedAt: now.subtract(const Duration(days: 2)),
+          ),
+        ],
       ),
       Reservation(
         id: 'r2',
@@ -142,6 +165,22 @@ class ReservationsProvider extends ChangeNotifier {
         provider: 'Vrbo Host: The Reyes Family',
         website: 'https://www.vrbo.com',
         notes: '3 bed / 2 bath, lake view. Check-in code sent by host.',
+        attachments: [
+          TravelDocument(
+            id: 'a2',
+            fileName: 'Booking Confirmation.pdf',
+            type: AttachmentType.pdf,
+            bytes: placeholderDocumentBytes,
+            uploadedAt: now.subtract(const Duration(days: 8)),
+          ),
+          TravelDocument(
+            id: 'a3',
+            fileName: 'Check-in QR Code.png',
+            type: AttachmentType.image,
+            bytes: placeholderImageBytes,
+            uploadedAt: now.subtract(const Duration(days: 1)),
+          ),
+        ],
       ),
       Reservation(
         id: 'r4',

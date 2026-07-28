@@ -22,6 +22,7 @@ class AppSection {
   static const String photosRoute = '/photos';
   static const String tasksRoute = '/tasks';
   static const String aiAssistantRoute = '/ai-assistant';
+  static const String travelWalletRoute = '/travel-wallet';
 
   static const home = AppSection(
     route: homeRoute,
@@ -65,6 +66,13 @@ class AppSection {
     color: Color(0xFF6741D9),
   );
 
+  static const travelWallet = AppSection(
+    route: travelWalletRoute,
+    title: 'Travel Wallet',
+    icon: Icons.account_balance_wallet_rounded,
+    color: Color(0xFF1F7A5C),
+  );
+
   static const memories = AppSection(
     route: photosRoute,
     title: 'Memories',
@@ -93,6 +101,7 @@ class AppSection {
     packing,
     expenses,
     reservations,
+    travelWallet,
     memories,
     tasks,
     aiAssistant,
