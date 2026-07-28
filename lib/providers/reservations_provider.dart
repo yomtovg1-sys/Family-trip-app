@@ -1,90 +1,283 @@
 import 'package:flutter/material.dart';
 import '../models/reservation.dart';
+import '../models/reservation_attachment.dart';
 
 class ReservationsProvider extends ChangeNotifier {
-  final List<Reservation> _reservations = [
-    Reservation(
-      id: 'r1',
-      tripId: 'trip-tahoe',
-      type: ReservationType.flight,
-      title: 'Delta Airlines DL 1204',
-      confirmationNumber: 'ABZ4KP',
-      start: DateTime.now().add(const Duration(days: 21, hours: 8, minutes: 30)),
-      end: DateTime.now().add(const Duration(days: 21, hours: 10, minutes: 45)),
-      details: 'SFO → RNO, 2 adults, 2 children',
-    ),
-    Reservation(
-      id: 'r2',
-      tripId: 'trip-tahoe',
-      type: ReservationType.car,
-      title: 'Enterprise SUV Rental',
-      confirmationNumber: 'ENT-778820',
-      start: DateTime.now().add(const Duration(days: 21, hours: 11)),
-      end: DateTime.now().add(const Duration(days: 28, hours: 9)),
-      details: 'Pickup & drop-off at Reno-Tahoe Airport',
-    ),
-    Reservation(
-      id: 'r3',
-      tripId: 'trip-tahoe',
-      type: ReservationType.hotel,
-      title: 'Tahoe Pines Cabin',
-      confirmationNumber: 'VRB-559012',
-      start: DateTime.now().add(const Duration(days: 21, hours: 14)),
-      end: DateTime.now().add(const Duration(days: 28, hours: 11)),
-      details: '3 bed / 2 bath, lake view, check-in code sent by host',
-    ),
-    Reservation(
-      id: 'r4',
-      tripId: 'trip-japan',
-      type: ReservationType.flight,
-      title: 'ANA Flight NH 106',
-      confirmationNumber: 'JPN7QX',
-      start: DateTime.now().add(const Duration(days: 410, hours: 10)),
-      end: DateTime.now().add(const Duration(days: 411, hours: 14)),
-      details: 'SFO → HND, 2 adults, 2 children',
-    ),
-    Reservation(
-      id: 'r5',
-      tripId: 'trip-japan',
-      type: ReservationType.hotel,
-      title: 'Shinjuku Family Suites',
-      confirmationNumber: 'RYK-33210',
-      start: DateTime.now().add(const Duration(days: 411, hours: 15)),
-      end: DateTime.now().add(const Duration(days: 414)),
-      details: 'Family suite, 2 nights, near Shinjuku Station',
-    ),
-    Reservation(
-      id: 'r6',
-      tripId: 'trip-italy',
-      type: ReservationType.flight,
-      title: 'Alitalia AZ 608',
-      confirmationNumber: 'ITL9PL',
-      start: DateTime.now().subtract(const Duration(days: 201)).add(const Duration(hours: 9)),
-      end: DateTime.now().subtract(const Duration(days: 200)).add(const Duration(hours: 12)),
-      details: 'SFO → FCO, 2 adults, 2 children',
-    ),
-    Reservation(
-      id: 'r7',
-      tripId: 'trip-italy',
-      type: ReservationType.hotel,
-      title: 'Hotel Artemide Rome',
-      confirmationNumber: 'HTL-22841',
-      start: DateTime.now().subtract(const Duration(days: 201)),
-      end: DateTime.now().subtract(const Duration(days: 198)),
-      details: '2 connecting rooms, breakfast included',
-    ),
-  ];
+  final List<Reservation> _reservations = _seedReservations();
 
   List<Reservation> get reservations => List.unmodifiable(_reservations);
 
   List<Reservation> forTrip(String tripId) =>
       _reservations.where((r) => r.tripId == tripId).toList();
 
-  List<Reservation> byType(ReservationType type) =>
-      _reservations.where((r) => r.type == type).toList();
+  Reservation? nextUpcoming(String tripId) {
+    final now = DateTime.now();
+    final upcoming = forTrip(tripId)
+        .where((r) => r.status == ReservationStatus.upcoming && r.dateTime.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
+
+  List<Reservation> search(
+    String tripId, {
+    String query = '',
+    ReservationCategory? category,
+    ReservationStatus? status,
+  }) {
+    final lowerQuery = query.trim().toLowerCase();
+    return forTrip(tripId).where((r) {
+      final matchesCategory = category == null || r.category == category;
+      final matchesStatus = status == null || r.status == status;
+      final matchesQuery = lowerQuery.isEmpty ||
+          r.title.toLowerCase().contains(lowerQuery) ||
+          r.provider.toLowerCase().contains(lowerQuery) ||
+          r.location.toLowerCase().contains(lowerQuery) ||
+          r.confirmationNumber.toLowerCase().contains(lowerQuery);
+      return matchesCategory && matchesStatus && matchesQuery;
+    }).toList()
+      ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+  }
+
+  /// Groups reservations by calendar day for the timeline view.
+  Map<DateTime, List<Reservation>> groupByDate(List<Reservation> items) {
+    final map = <DateTime, List<Reservation>>{};
+    for (final r in items) {
+      final day = DateTime(r.dateTime.year, r.dateTime.month, r.dateTime.day);
+      map.putIfAbsent(day, () => []).add(r);
+    }
+    return map;
+  }
+
+  Reservation? byId(String id) {
+    for (final r in _reservations) {
+      if (r.id == id) return r;
+    }
+    return null;
+  }
 
   void addReservation(Reservation reservation) {
     _reservations.add(reservation);
     notifyListeners();
+  }
+
+  void updateReservation(Reservation updated) {
+    final index = _reservations.indexWhere((r) => r.id == updated.id);
+    if (index != -1) {
+      _reservations[index] = updated;
+      notifyListeners();
+    }
+  }
+
+  void deleteReservation(String id) {
+    _reservations.removeWhere((r) => r.id == id);
+    notifyListeners();
+  }
+
+  void setStatus(String id, ReservationStatus status) {
+    final r = byId(id);
+    if (r != null) updateReservation(r.copyWith(status: status));
+  }
+
+  void addAttachment(String reservationId, ReservationAttachment attachment) {
+    final r = byId(reservationId);
+    if (r != null) {
+      updateReservation(r.copyWith(attachments: [...r.attachments, attachment]));
+    }
+  }
+
+  void removeAttachment(String reservationId, String attachmentId) {
+    final r = byId(reservationId);
+    if (r != null) {
+      updateReservation(
+        r.copyWith(
+          attachments: r.attachments.where((a) => a.id != attachmentId).toList(),
+        ),
+      );
+    }
+  }
+
+  static List<Reservation> _seedReservations() {
+    final now = DateTime.now();
+
+    return [
+      // --- Lake Tahoe (upcoming trip) ---
+      Reservation(
+        id: 'r1',
+        tripId: 'trip-tahoe',
+        category: ReservationCategory.flight,
+        title: 'Flight to Reno-Tahoe',
+        dateTime: now.add(const Duration(days: 21, hours: 8, minutes: 30)),
+        endDateTime: now.add(const Duration(days: 21, hours: 10, minutes: 45)),
+        location: 'San Francisco Intl (SFO) → Reno-Tahoe Intl (RNO)',
+        confirmationNumber: 'ABZ4KP',
+        provider: 'Delta Airlines',
+        phone: '+1 800-221-1212',
+        website: 'https://www.delta.com',
+        notes: '2 adults, 2 children. Seats 14A-14D.',
+      ),
+      Reservation(
+        id: 'r2',
+        tripId: 'trip-tahoe',
+        category: ReservationCategory.transportation,
+        subtype: 'Rental Car',
+        title: 'Rental Car Pickup',
+        dateTime: now.add(const Duration(days: 21, hours: 11)),
+        endDateTime: now.add(const Duration(days: 28, hours: 9)),
+        location: 'Reno-Tahoe Airport Rental Car Center',
+        confirmationNumber: 'ENT-778820',
+        provider: 'Enterprise',
+        phone: '+1 855-266-9565',
+        website: 'https://www.enterprise.com',
+      ),
+      Reservation(
+        id: 'r3',
+        tripId: 'trip-tahoe',
+        category: ReservationCategory.hotel,
+        title: 'Hotel Check-in',
+        dateTime: now.add(const Duration(days: 21, hours: 14)),
+        endDateTime: now.add(const Duration(days: 28, hours: 11)),
+        location: 'Tahoe Pines Cabin, South Lake Tahoe',
+        confirmationNumber: 'VRB-559012',
+        provider: 'Vrbo Host: The Reyes Family',
+        website: 'https://www.vrbo.com',
+        notes: '3 bed / 2 bath, lake view. Check-in code sent by host.',
+      ),
+      Reservation(
+        id: 'r4',
+        tripId: 'trip-tahoe',
+        category: ReservationCategory.ticket,
+        subtype: 'Tour',
+        title: 'Sand Harbor Kayak Tour',
+        dateTime: now.add(const Duration(days: 22, hours: 9)),
+        endDateTime: now.add(const Duration(days: 22, hours: 11)),
+        location: 'Sand Harbor Beach, Lake Tahoe',
+        confirmationNumber: 'TAH-4471',
+        provider: 'Tahoe Adventure Co.',
+        website: 'https://www.tahoeadventureco.com',
+        notes: 'Life jackets provided for kids.',
+      ),
+
+      // --- Japan (far-future trip) ---
+      Reservation(
+        id: 'r5',
+        tripId: 'trip-japan',
+        category: ReservationCategory.flight,
+        title: 'Flight to Tokyo',
+        dateTime: now.add(const Duration(days: 410, hours: 10)),
+        endDateTime: now.add(const Duration(days: 411, hours: 14)),
+        location: 'San Francisco Intl (SFO) → Haneda Airport (HND)',
+        confirmationNumber: 'JPN7QX',
+        provider: 'ANA',
+        phone: '+1 800-235-9262',
+        website: 'https://www.ana.co.jp',
+        notes: '2 adults, 2 children.',
+      ),
+      Reservation(
+        id: 'r6',
+        tripId: 'trip-japan',
+        category: ReservationCategory.hotel,
+        title: 'Hotel Check-in',
+        dateTime: now.add(const Duration(days: 411, hours: 15)),
+        endDateTime: now.add(const Duration(days: 414)),
+        location: 'Shinjuku Family Suites, Tokyo',
+        confirmationNumber: 'RYK-33210',
+        provider: 'Shinjuku Family Suites',
+        website: 'https://www.shinjukufamilysuites.example',
+        notes: 'Family suite, 2 connecting rooms.',
+      ),
+      Reservation(
+        id: 'r7',
+        tripId: 'trip-japan',
+        category: ReservationCategory.transportation,
+        subtype: 'Train',
+        title: 'JR Rail Pass Activation',
+        dateTime: now.add(const Duration(days: 411, hours: 9)),
+        location: 'JR East Travel Service Center, Tokyo Station',
+        confirmationNumber: 'JR-88213',
+        provider: 'Japan Rail',
+        website: 'https://www.jreast.co.jp',
+      ),
+      Reservation(
+        id: 'r8',
+        tripId: 'trip-japan',
+        category: ReservationCategory.ticket,
+        subtype: 'Museum',
+        title: 'teamLab Planets Tokyo',
+        dateTime: now.add(const Duration(days: 412, hours: 13)),
+        location: 'Toyosu, Tokyo',
+        confirmationNumber: 'TLP-99871',
+        provider: 'teamLab',
+        website: 'https://www.teamlab.art',
+        notes: 'Wear shorts — some rooms involve wading through water.',
+      ),
+
+      // --- Italy (completed trip) ---
+      Reservation(
+        id: 'r9',
+        tripId: 'trip-italy',
+        category: ReservationCategory.flight,
+        title: 'Flight to Rome',
+        dateTime: now.subtract(const Duration(days: 201)).add(const Duration(hours: 9)),
+        endDateTime: now.subtract(const Duration(days: 200)).add(const Duration(hours: 12)),
+        location: 'San Francisco Intl (SFO) → Fiumicino (FCO)',
+        confirmationNumber: 'ITL9PL',
+        provider: 'Alitalia',
+        website: 'https://www.ita-airways.com',
+        status: ReservationStatus.completed,
+      ),
+      Reservation(
+        id: 'r10',
+        tripId: 'trip-italy',
+        category: ReservationCategory.hotel,
+        title: 'Hotel Check-in',
+        dateTime: now.subtract(const Duration(days: 201)),
+        endDateTime: now.subtract(const Duration(days: 198)),
+        location: 'Hotel Artemide, Rome',
+        confirmationNumber: 'HTL-22841',
+        provider: 'Hotel Artemide',
+        website: 'https://www.hotelartemide.it',
+        notes: '2 connecting rooms, breakfast included.',
+        status: ReservationStatus.completed,
+      ),
+      Reservation(
+        id: 'r11',
+        tripId: 'trip-italy',
+        category: ReservationCategory.transportation,
+        subtype: 'Ferry',
+        title: 'Venice Water Taxi',
+        dateTime: now.subtract(const Duration(days: 193)).add(const Duration(hours: 10)),
+        location: 'Venice Santa Lucia to Hotel Dock',
+        confirmationNumber: 'VEN-5521',
+        provider: 'Venezia Water Taxi Co.',
+        status: ReservationStatus.completed,
+      ),
+      Reservation(
+        id: 'r12',
+        tripId: 'trip-italy',
+        category: ReservationCategory.ticket,
+        subtype: 'Tour',
+        title: 'Colosseum Underground Tour',
+        dateTime: now.subtract(const Duration(days: 200)).add(const Duration(hours: 10)),
+        location: 'Colosseum, Rome',
+        confirmationNumber: 'COL-77102',
+        provider: 'Rome Guided Tours',
+        website: 'https://www.romeguidedtours.example',
+        status: ReservationStatus.completed,
+      ),
+      Reservation(
+        id: 'r13',
+        tripId: 'trip-italy',
+        category: ReservationCategory.ticket,
+        subtype: 'Museum',
+        title: 'Vatican Museums Skip-the-Line',
+        dateTime: now.subtract(const Duration(days: 199)).add(const Duration(hours: 14)),
+        location: 'Vatican Museums, Vatican City',
+        confirmationNumber: 'VAT-31029',
+        provider: 'Vatican Museums',
+        status: ReservationStatus.cancelled,
+        notes: 'Cancelled — replaced with a private tour instead.',
+      ),
+    ];
   }
 }

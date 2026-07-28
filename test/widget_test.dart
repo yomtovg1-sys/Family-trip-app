@@ -16,7 +16,7 @@ void main() {
 
     expect(find.textContaining('days to go'), findsOneWidget);
     expect(find.text('Quick Access'), findsOneWidget);
-    expect(find.text('Flights'), findsOneWidget);
+    expect(find.text('Reservations'), findsOneWidget);
     expect(find.text('AI Travel Assistant'), findsOneWidget);
   });
 }

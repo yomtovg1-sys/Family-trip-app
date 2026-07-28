@@ -27,7 +27,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dashboard = context.watch<TripProvider>().current;
-    final reservations = context.watch<ReservationsProvider>().forTrip(dashboard.trip.id);
+    final reservationsProvider = context.watch<ReservationsProvider>();
+    final reservationsCount = reservationsProvider.forTrip(dashboard.trip.id).length;
+    final nextReservation = reservationsProvider.nextUpcoming(dashboard.trip.id);
     final photos = context.watch<PhotoJournalProvider>().forTrip(dashboard.trip.id);
     final theme = Theme.of(context);
 
@@ -114,7 +116,8 @@ class HomeScreen extends StatelessWidget {
                     for (final item in _buildQuickAccessItems(
                       context: context,
                       dashboard: dashboard,
-                      reservations: reservations,
+                      reservationsCount: reservationsCount,
+                      nextReservation: nextReservation,
                       photoCount: photos.length,
                     ))
                       _Reveal(delay: nextDelay(), child: item),
@@ -152,7 +155,8 @@ class HomeScreen extends StatelessWidget {
   List<_QuickAccessCard> _buildQuickAccessItems({
     required BuildContext context,
     required TripDashboard dashboard,
-    required List<Reservation> reservations,
+    required int reservationsCount,
+    required Reservation? nextReservation,
     required int photoCount,
   }) {
     String relativeDay(DateTime target) {
@@ -162,31 +166,9 @@ class HomeScreen extends StatelessWidget {
       return 'In $diff days';
     }
 
-    final flights = reservations.where((r) => r.type == ReservationType.flight).toList()
-      ..sort((a, b) => a.start.compareTo(b.start));
-    final hotels = reservations.where((r) => r.type == ReservationType.hotel).toList();
-
     void go(String route) => Navigator.of(context).pushNamed(route);
 
     return [
-      _QuickAccessCard(
-        title: 'Flights',
-        subtitle: flights.isEmpty
-            ? 'No flights booked'
-            : dashboard.trip.hasEnded
-                ? flights.first.title
-                : 'Next: ${relativeDay(flights.first.start)}',
-        icon: Icons.flight_rounded,
-        color: const Color(0xFF3A6EA5),
-        onTap: () => go(AppSection.reservationsRoute),
-      ),
-      _QuickAccessCard(
-        title: 'Hotels',
-        subtitle: hotels.isEmpty ? 'No hotels booked' : hotels.first.title,
-        icon: Icons.hotel_rounded,
-        color: const Color(0xFF7986CB),
-        onTap: () => go(AppSection.reservationsRoute),
-      ),
       _QuickAccessCard(
         title: 'Map',
         subtitle: '${dashboard.journeyStops.length} stops mapped',
@@ -217,9 +199,11 @@ class HomeScreen extends StatelessWidget {
       ),
       _QuickAccessCard(
         title: 'Reservations',
-        subtitle: dashboard.trip.hasEnded
-            ? '${reservations.length} saved'
-            : '${reservations.length} upcoming',
+        subtitle: nextReservation != null
+            ? '${nextReservation.category.emoji} ${nextReservation.category.singularLabel} · ${relativeDay(nextReservation.dateTime)}'
+            : reservationsCount == 0
+                ? 'No bookings yet'
+                : '$reservationsCount saved',
         icon: Icons.confirmation_number_rounded,
         color: const Color(0xFF6741D9),
         onTap: () => go(AppSection.reservationsRoute),
