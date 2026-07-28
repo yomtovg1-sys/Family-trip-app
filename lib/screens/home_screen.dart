@@ -14,12 +14,15 @@ import '../widgets/alerts_banner.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/countdown_timer.dart';
+import '../widgets/expenses/add_expense_sheet.dart';
 import '../widgets/expenses_card.dart';
 import '../widgets/journey_card.dart';
 import '../widgets/memories_preview.dart';
 import '../widgets/section_header.dart';
 import '../widgets/trip_selector.dart';
 import '../widgets/weather_card.dart';
+import '../models/expense_entry.dart';
+import '../utils/currency.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -85,9 +88,20 @@ class HomeScreen extends StatelessWidget {
                 ],
                 _Reveal(
                   delay: nextDelay(),
-                  child: const SectionHeader(
+                  child: SectionHeader(
                     title: 'Expenses',
                     subtitle: 'Tracked automatically, no budget cap',
+                    trailing: IconButton.filledTonal(
+                      icon: const Icon(Icons.add_rounded),
+                      tooltip: 'Add expense',
+                      onPressed: () => showAddExpenseSheet(
+                        context,
+                        tripCurrency: dashboard.trip.currency,
+                        onSave: (expense) => context
+                            .read<TripProvider>()
+                            .addExpense(dashboard.trip.id, expense),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -97,8 +111,16 @@ class HomeScreen extends StatelessWidget {
                     todayTotal: dashboard.todayExpenses,
                     tripTotal: dashboard.totalExpenses,
                     byCategory: dashboard.expensesByCategory,
+                    currency: dashboard.trip.currency,
                   ),
                 ),
+                if (dashboard.expenses.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _Reveal(
+                    delay: nextDelay(),
+                    child: _RecentExpenses(dashboard: dashboard),
+                  ),
+                ],
                 const SizedBox(height: 28),
                 _Reveal(
                   delay: nextDelay(),
@@ -190,7 +212,7 @@ class HomeScreen extends StatelessWidget {
       ),
       _QuickAccessCard(
         title: 'Expenses',
-        subtitle: '\$${dashboard.totalExpenses.toStringAsFixed(0)} spent',
+        subtitle: '${formatMoney(dashboard.totalExpenses, dashboard.trip.currency)} spent',
         icon: Icons.savings_rounded,
         color: const Color(0xFF2B8A8A),
         onTap: () => go(AppSection.expensesRoute),
@@ -231,6 +253,54 @@ class HomeScreen extends StatelessWidget {
             .push(MaterialPageRoute(builder: (_) => const AiAssistantScreen())),
       ),
     ];
+  }
+}
+
+/// A short preview of the most recently logged expenses, shown right under
+/// the Expenses summary card so the family can see spending activity at a
+/// glance without leaving Home.
+class _RecentExpenses extends StatelessWidget {
+  final TripDashboard dashboard;
+
+  const _RecentExpenses({required this.dashboard});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final recent = dashboard.expenses.reversed.take(3).toList();
+    final dateFormat = DateFormat('MMM d');
+
+    return Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (final entry in recent)
+              ListTile(
+                dense: true,
+                leading: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: entry.category.color.withValues(alpha: 0.15),
+                  child: Text(entry.category.emoji, style: const TextStyle(fontSize: 15)),
+                ),
+                title: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                subtitle: Text(dateFormat.format(entry.date)),
+                trailing: Text(
+                  formatMoney(entry.amount, entry.currency),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                onTap: () => Navigator.of(context).pushNamed(AppSection.expensesRoute),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

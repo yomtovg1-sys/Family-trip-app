@@ -200,6 +200,11 @@ class TripProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addExpense(String tripId, ExpenseEntry expense) {
+    _dashboardFor(tripId)?.expenses.add(expense);
+    notifyListeners();
+  }
+
   static List<TripDashboard> _seedDashboards() {
     final now = DateTime.now();
 
@@ -212,6 +217,7 @@ class TripProvider extends ChangeNotifier {
       heroEmoji: '🏔️',
       flagEmoji: '🇺🇸',
       photoAsset: 'assets/images/family_hero.jpg',
+      currency: 'USD',
     );
 
     final japan = Trip(
@@ -222,6 +228,7 @@ class TripProvider extends ChangeNotifier {
       endDate: now.add(const Duration(days: 424)),
       heroEmoji: '🗼',
       flagEmoji: '🇯🇵',
+      currency: 'JPY',
     );
 
     final italy = Trip(
@@ -232,6 +239,7 @@ class TripProvider extends ChangeNotifier {
       endDate: now.subtract(const Duration(days: 191)),
       heroEmoji: '🍝',
       flagEmoji: '🇮🇹',
+      currency: 'EUR',
     );
 
     return [
@@ -258,50 +266,57 @@ class TripProvider extends ChangeNotifier {
         expenses: [
           ExpenseEntry(
             id: 'e1',
-            description: 'Round-trip flights',
+            merchant: 'Delta Airlines',
             amount: 1450,
-            category: ExpenseCategory.transportation,
+            currency: 'USD',
+            category: ExpenseCategory.flights,
             date: now.subtract(const Duration(days: 10)),
           ),
           ExpenseEntry(
             id: 'e2',
-            description: 'Cabin rental (7 nights)',
+            merchant: 'Cabin rental (7 nights)',
             amount: 1200,
-            category: ExpenseCategory.hotels,
+            currency: 'USD',
+            category: ExpenseCategory.hotel,
             date: now.subtract(const Duration(days: 8)),
           ),
           ExpenseEntry(
             id: 'e3',
-            description: 'Rental car',
+            merchant: 'Enterprise Rent-A-Car',
             amount: 380,
+            currency: 'USD',
             category: ExpenseCategory.transportation,
             date: now.subtract(const Duration(days: 5)),
           ),
           ExpenseEntry(
             id: 'e4',
-            description: 'Grocery run',
+            merchant: 'Grocery run',
             amount: 140,
-            category: ExpenseCategory.food,
+            currency: 'USD',
+            category: ExpenseCategory.grocery,
             date: now.subtract(const Duration(days: 3)),
           ),
           ExpenseEntry(
             id: 'e5',
-            description: 'Kayak rental',
+            merchant: 'Kayak rental',
             amount: 90,
+            currency: 'USD',
             category: ExpenseCategory.attractions,
             date: now.subtract(const Duration(days: 2)),
           ),
           ExpenseEntry(
             id: 'e6',
-            description: 'Hiking permits',
+            merchant: 'Hiking permits',
             amount: 25,
+            currency: 'USD',
             category: ExpenseCategory.attractions,
             date: now,
           ),
           ExpenseEntry(
             id: 'e7',
-            description: 'Family day packs',
+            merchant: 'Family day packs',
             amount: 60,
+            currency: 'USD',
             category: ExpenseCategory.shopping,
             date: now,
           ),
@@ -369,36 +384,41 @@ class TripProvider extends ChangeNotifier {
         expenses: [
           ExpenseEntry(
             id: 'j1',
-            description: 'International flights (deposit)',
+            merchant: 'International flights (deposit)',
             amount: 600,
-            category: ExpenseCategory.transportation,
+            currency: 'USD',
+            category: ExpenseCategory.flights,
             date: now.subtract(const Duration(days: 60)),
           ),
           ExpenseEntry(
             id: 'j2',
-            description: 'Ryokan booking',
+            merchant: 'Ryokan booking',
             amount: 450,
-            category: ExpenseCategory.hotels,
+            currency: 'USD',
+            category: ExpenseCategory.hotel,
             date: now.subtract(const Duration(days: 45)),
           ),
           ExpenseEntry(
             id: 'j3',
-            description: 'JR Rail Pass',
+            merchant: 'JR Rail Pass',
             amount: 380,
+            currency: 'USD',
             category: ExpenseCategory.transportation,
             date: now.subtract(const Duration(days: 10)),
           ),
           ExpenseEntry(
             id: 'j4',
-            description: 'Travel guidebook & gear',
+            merchant: 'Travel guidebook & gear',
             amount: 70,
+            currency: 'USD',
             category: ExpenseCategory.shopping,
             date: now.subtract(const Duration(days: 5)),
           ),
           ExpenseEntry(
             id: 'j5',
-            description: 'Universal Studios tickets',
+            merchant: 'Universal Studios tickets',
             amount: 210,
+            currency: 'USD',
             category: ExpenseCategory.attractions,
             date: now,
           ),
@@ -428,43 +448,49 @@ class TripProvider extends ChangeNotifier {
         expenses: [
           ExpenseEntry(
             id: 'i1',
-            description: 'Round-trip flights',
+            merchant: 'Round-trip flights',
             amount: 1100,
-            category: ExpenseCategory.transportation,
+            currency: 'EUR',
+            category: ExpenseCategory.flights,
             date: italy.startDate,
           ),
           ExpenseEntry(
             id: 'i2',
-            description: 'Hotels (3 cities)',
+            merchant: 'Hotels (3 cities)',
             amount: 1400,
-            category: ExpenseCategory.hotels,
+            currency: 'EUR',
+            category: ExpenseCategory.hotel,
             date: italy.startDate.add(const Duration(days: 1)),
           ),
           ExpenseEntry(
             id: 'i3',
-            description: 'Meals & trattorias',
+            merchant: 'Meals & trattorias',
             amount: 680,
+            currency: 'EUR',
             category: ExpenseCategory.food,
             date: italy.startDate.add(const Duration(days: 2)),
           ),
           ExpenseEntry(
             id: 'i4',
-            description: 'Colosseum & Uffizi tickets',
+            merchant: 'Colosseum & Uffizi tickets',
             amount: 150,
+            currency: 'EUR',
             category: ExpenseCategory.attractions,
             date: italy.startDate.add(const Duration(days: 3)),
           ),
           ExpenseEntry(
             id: 'i5',
-            description: 'Souvenirs',
+            merchant: 'Souvenirs',
             amount: 220,
+            currency: 'EUR',
             category: ExpenseCategory.shopping,
             date: italy.startDate.add(const Duration(days: 7)),
           ),
           ExpenseEntry(
             id: 'i6',
-            description: 'Gondola ride',
+            merchant: 'Gondola ride',
             amount: 90,
+            currency: 'EUR',
             category: ExpenseCategory.attractions,
             date: italy.startDate.add(const Duration(days: 8)),
           ),

@@ -7,6 +7,7 @@ class Trip {
   final String heroEmoji;
   final String flagEmoji;
   final String? photoAsset;
+  final String currency;
 
   const Trip({
     required this.id,
@@ -17,6 +18,7 @@ class Trip {
     this.heroEmoji = '✈️',
     this.flagEmoji = '🌍',
     this.photoAsset,
+    this.currency = 'USD',
   });
 
   Duration get timeUntilStart => startDate.difference(DateTime.now());

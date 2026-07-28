@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/weather_snapshot.dart';
 import '../providers/trip_provider.dart';
+import '../utils/currency.dart';
 import '../widgets/ai_assistant_card.dart';
 
 class AiAssistantScreen extends StatefulWidget {
@@ -85,8 +86,9 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
           'and save travel time for the afternoon when the family needs a slower pace.';
     }
     if (lower.contains('expense') || lower.contains('budget') || lower.contains('money') || lower.contains('cost')) {
-      return 'So far you\'ve spent \$${dashboard.totalExpenses.toStringAsFixed(0)} on this trip, '
-          '\$${dashboard.todayExpenses.toStringAsFixed(0)} of that today. Check the Expenses card on Home for the full breakdown.';
+      final currency = dashboard.trip.currency;
+      return 'So far you\'ve spent ${formatMoney(dashboard.totalExpenses, currency)} on this trip, '
+          '${formatMoney(dashboard.todayExpenses, currency)} of that today. Check the Expenses card on Home for the full breakdown.';
     }
     return 'Great question! Once connected to a live AI service I\'ll be able to give a detailed answer — '
         'for now, try asking about today\'s activities, restaurants, your route, or expenses.';

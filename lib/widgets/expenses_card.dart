@@ -1,17 +1,20 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/expense_entry.dart';
+import '../utils/currency.dart';
 
 class ExpensesCard extends StatelessWidget {
   final double todayTotal;
   final double tripTotal;
   final Map<ExpenseCategory, double> byCategory;
+  final String currency;
 
   const ExpensesCard({
     super.key,
     required this.todayTotal,
     required this.tripTotal,
     required this.byCategory,
+    this.currency = 'USD',
   });
 
   @override
@@ -39,9 +42,9 @@ class ExpensesCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              _StatColumn(label: "Today", amount: todayTotal),
+              _StatColumn(label: "Today", amount: todayTotal, currency: currency),
               const SizedBox(width: 28),
-              _StatColumn(label: 'Trip total', amount: tripTotal),
+              _StatColumn(label: 'Trip total', amount: tripTotal, currency: currency),
             ],
           ),
           const SizedBox(height: 20),
@@ -87,11 +90,13 @@ class ExpensesCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
+                              Text(entry.key.emoji, style: const TextStyle(fontSize: 12)),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Text(entry.key.label, style: theme.textTheme.bodySmall),
                               ),
                               Text(
-                                '\$${entry.value.toStringAsFixed(0)}',
+                                formatMoney(entry.value, currency),
                                 style: theme.textTheme.bodySmall
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
@@ -112,8 +117,9 @@ class ExpensesCard extends StatelessWidget {
 class _StatColumn extends StatelessWidget {
   final String label;
   final double amount;
+  final String currency;
 
-  const _StatColumn({required this.label, required this.amount});
+  const _StatColumn({required this.label, required this.amount, required this.currency});
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +137,7 @@ class _StatColumn extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '\$${amount.toStringAsFixed(0)}',
+          formatMoney(amount, currency),
           style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
       ],
