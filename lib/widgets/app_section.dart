@@ -16,6 +16,7 @@ class AppSection {
   static const String homeRoute = '/';
   static const String itineraryRoute = '/itinerary';
   static const String mapRoute = '/map';
+  static const String placesRoute = '/places';
   static const String packingRoute = '/packing';
   static const String expensesRoute = '/expenses';
   static const String reservationsRoute = '/reservations';
@@ -40,9 +41,16 @@ class AppSection {
 
   static const map = AppSection(
     route: mapRoute,
-    title: 'Map & Places',
+    title: 'Map',
     icon: Icons.map_rounded,
     color: Color(0xFF2F9E44),
+  );
+
+  static const places = AppSection(
+    route: placesRoute,
+    title: 'Places',
+    icon: Icons.travel_explore_rounded,
+    color: Color(0xFFE8590C),
   );
 
   static const packing = AppSection(
@@ -98,6 +106,7 @@ class AppSection {
     home,
     itinerary,
     map,
+    places,
     packing,
     expenses,
     reservations,

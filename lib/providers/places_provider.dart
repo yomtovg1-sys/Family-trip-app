@@ -110,7 +110,6 @@ class PlacesProvider extends ChangeNotifier {
         category: candidate.category ?? PlaceCategory.other,
         area: candidate.address ?? '',
         notes: candidate.notes,
-        photoUrl: candidate.photoUrl,
         googleMapsUrl: candidate.googleMapsUrl,
         source: PlaceSource.googleImport,
       );
@@ -136,8 +135,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.nature,
         area: 'Incline Village, NV',
         notes: 'Calm, clear water — great for the kids.',
-        priority: 5,
-        estimatedDuration: Duration(hours: 3),
         isFavorite: true,
       ),
       const SavedPlace(
@@ -149,8 +146,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.nature,
         area: 'Emerald Bay, CA',
         notes: 'Moderate hike, stunning overlook.',
-        priority: 4,
-        estimatedDuration: Duration(hours: 2),
       ),
       const SavedPlace(
         id: 'place-t3',
@@ -160,8 +155,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: -119.9400,
         category: PlaceCategory.shopping,
         area: 'South Lake Tahoe, CA',
-        priority: 3,
-        estimatedDuration: Duration(hours: 2),
       ),
       const SavedPlace(
         id: 'place-t4',
@@ -172,9 +165,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.restaurants,
         area: 'South Lake Tahoe, CA',
         notes: 'Lake view patio — book ahead for sunset.',
-        priority: 4,
-        estimatedDuration: Duration(minutes: 90),
-        estimatedCost: 80,
         isFavorite: true,
       ),
       const SavedPlace(
@@ -185,8 +175,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: -119.9765,
         category: PlaceCategory.cafes,
         area: 'South Lake Tahoe, CA',
-        priority: 3,
-        estimatedCost: 6,
       ),
       const SavedPlace(
         id: 'place-t6',
@@ -197,7 +185,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.hotels,
         area: 'South Lake Tahoe, CA',
         notes: 'Our home base for the week.',
-        priority: 5,
         isFavorite: true,
       ),
       const SavedPlace(
@@ -209,8 +196,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.nature,
         area: 'Emerald Bay, CA',
         notes: 'Best photo spot on the whole lake.',
-        priority: 5,
-        estimatedDuration: Duration(hours: 3),
         isFavorite: true,
       ),
       const SavedPlace(
@@ -221,7 +206,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: -119.9528,
         category: PlaceCategory.parking,
         area: 'Zephyr Cove, NV',
-        priority: 2,
       ),
       const SavedPlace(
         id: 'place-t9',
@@ -232,9 +216,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.attractions,
         area: 'Incline Village, NV',
         notes: 'Kayak tours — booked for Thursday.',
-        priority: 4,
-        estimatedDuration: Duration(hours: 2),
-        estimatedCost: 65,
       ),
       const SavedPlace(
         id: 'place-t10',
@@ -244,8 +225,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: -119.9770,
         category: PlaceCategory.restaurants,
         area: 'South Lake Tahoe, CA',
-        priority: 4,
-        estimatedCost: 45,
         isFavorite: true,
       ),
       const SavedPlace(
@@ -256,7 +235,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: -119.8500,
         category: PlaceCategory.other,
         area: 'Along Hwy 50',
-        priority: 2,
       ),
 
       // --- Japan ---
@@ -268,7 +246,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 139.7100,
         category: PlaceCategory.nature,
         area: 'Shinjuku, Tokyo',
-        priority: 5,
         isFavorite: true,
       ),
       const SavedPlace(
@@ -280,8 +257,6 @@ class PlacesProvider extends ChangeNotifier {
         category: PlaceCategory.attractions,
         area: 'Toyosu, Tokyo',
         notes: 'Wear shorts — some rooms involve wading through water.',
-        priority: 5,
-        estimatedDuration: Duration(hours: 2),
       ),
       const SavedPlace(
         id: 'place-j3',
@@ -291,8 +266,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 139.7005,
         category: PlaceCategory.restaurants,
         area: 'Shinjuku, Tokyo',
-        priority: 4,
-        estimatedCost: 12,
       ),
       const SavedPlace(
         id: 'place-j4',
@@ -302,7 +275,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 139.7034,
         category: PlaceCategory.hotels,
         area: 'Shinjuku, Tokyo',
-        priority: 5,
         isFavorite: true,
       ),
 
@@ -315,7 +287,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 12.4922,
         category: PlaceCategory.attractions,
         area: 'Rome, Italy',
-        priority: 5,
         isFavorite: true,
       ),
       const SavedPlace(
@@ -326,7 +297,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 12.4853,
         category: PlaceCategory.hotels,
         area: 'Rome, Italy',
-        priority: 4,
       ),
       const SavedPlace(
         id: 'place-i3',
@@ -336,8 +306,6 @@ class PlacesProvider extends ChangeNotifier {
         longitude: 12.4694,
         category: PlaceCategory.restaurants,
         area: 'Trastevere, Rome',
-        priority: 4,
-        estimatedCost: 60,
       ),
     ];
   }

@@ -19,8 +19,8 @@ import 'import_google_maps_screen.dart';
 import 'paste_link_screen.dart';
 import 'place_search_screen.dart';
 
-/// The Map / Places screen — a visual planner for every place the family
-/// has saved for this trip, not a turn-by-turn navigation screen.
+/// The Map screen — a visual, pin-based view of every place the family has
+/// saved for this trip. See PlacesScreen for the organized list view.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -69,7 +69,7 @@ class _MapScreenState extends State<MapScreen> {
         : const LatLng(39.0968, -120.0324);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Map & Places')),
+      appBar: AppBar(title: const Text('Map')),
       drawer: const AppDrawer(currentRoute: AppSection.mapRoute),
       body: Stack(
         children: [
@@ -217,7 +217,7 @@ class _PlacePin extends StatelessWidget {
           child: Text(place.category.emoji, style: const TextStyle(fontSize: 15)),
         ),
         if (place.isFavorite)
-          const Icon(Icons.favorite_rounded, size: 12, color: Color(0xFFE53935)),
+          const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFB300)),
       ],
     );
   }

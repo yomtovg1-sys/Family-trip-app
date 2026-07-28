@@ -158,11 +158,7 @@ class SavedPlace {
   final PlaceCategory category;
   final String area;
   final String? notes;
-  final int priority;
-  final Duration? estimatedDuration;
-  final double? estimatedCost;
   final bool isFavorite;
-  final String? photoUrl;
   final String? googleMapsUrl;
   final PlaceSource source;
 
@@ -175,11 +171,7 @@ class SavedPlace {
     required this.category,
     required this.area,
     this.notes,
-    this.priority = 3,
-    this.estimatedDuration,
-    this.estimatedCost,
     this.isFavorite = false,
-    this.photoUrl,
     this.googleMapsUrl,
     this.source = PlaceSource.manual,
   });
@@ -191,11 +183,7 @@ class SavedPlace {
     PlaceCategory? category,
     String? area,
     String? notes,
-    int? priority,
-    Duration? estimatedDuration,
-    double? estimatedCost,
     bool? isFavorite,
-    String? photoUrl,
     String? googleMapsUrl,
     PlaceSource? source,
   }) {
@@ -208,11 +196,7 @@ class SavedPlace {
       category: category ?? this.category,
       area: area ?? this.area,
       notes: notes ?? this.notes,
-      priority: priority ?? this.priority,
-      estimatedDuration: estimatedDuration ?? this.estimatedDuration,
-      estimatedCost: estimatedCost ?? this.estimatedCost,
       isFavorite: isFavorite ?? this.isFavorite,
-      photoUrl: photoUrl ?? this.photoUrl,
       googleMapsUrl: googleMapsUrl ?? this.googleMapsUrl,
       source: source ?? this.source,
     );

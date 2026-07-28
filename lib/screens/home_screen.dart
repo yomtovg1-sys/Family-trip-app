@@ -212,7 +212,7 @@ class HomeScreen extends StatelessWidget {
         subtitle: placesCount == 0 ? 'Discover nearby spots' : '$placesCount saved spots',
         icon: Icons.travel_explore_rounded,
         color: const Color(0xFFE8590C),
-        onTap: () => go(AppSection.mapRoute),
+        onTap: () => go(AppSection.placesRoute),
       ),
       _QuickAccessCard(
         title: 'Expenses',

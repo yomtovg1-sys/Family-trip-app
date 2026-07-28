@@ -5,14 +5,12 @@ import '../models/place.dart';
 import '../models/place_draft.dart';
 import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
-import '../utils/currency.dart';
-import '../widgets/places/star_rating.dart';
 import 'pick_location_screen.dart';
 
 /// The manual-entry / review / edit form for a saved place. Used directly
-/// for "Manual entry", and as the shared review step every other capture
-/// method (search, pasted URL, screenshot scan, website) lands on with a
-/// pre-filled [draft] so the traveler only has to confirm, not retype.
+/// for "Manual entry" and "Pick from map", and as the shared review step
+/// the search capture method lands on with a pre-filled [draft] so the
+/// traveler only has to confirm, not retype.
 class AddPlaceScreen extends StatefulWidget {
   final PlaceDraft? draft;
   final SavedPlace? editing;
@@ -28,13 +26,10 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _areaController;
   late final TextEditingController _notesController;
-  late final TextEditingController _costController;
 
   PlaceCategory? _category;
   double? _latitude;
   double? _longitude;
-  int _priority = 3;
-  Duration? _duration;
   bool _isFavorite = false;
 
   bool get _isEditing => widget.editing != null;
@@ -48,14 +43,9 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
     _nameController = TextEditingController(text: editing?.name ?? draft?.name ?? '');
     _areaController = TextEditingController(text: editing?.area ?? draft?.area ?? '');
     _notesController = TextEditingController(text: editing?.notes ?? draft?.notes ?? '');
-    _costController = TextEditingController(
-      text: editing?.estimatedCost != null ? editing!.estimatedCost!.toStringAsFixed(0) : '',
-    );
     _category = editing?.category ?? draft?.category;
     _latitude = editing?.latitude ?? draft?.latitude;
     _longitude = editing?.longitude ?? draft?.longitude;
-    _priority = editing?.priority ?? 3;
-    _duration = editing?.estimatedDuration;
     _isFavorite = editing?.isFavorite ?? false;
   }
 
@@ -64,7 +54,6 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
     _nameController.dispose();
     _areaController.dispose();
     _notesController.dispose();
-    _costController.dispose();
     super.dispose();
   }
 
@@ -73,7 +62,6 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final trip = context.watch<TripProvider>().current.trip;
     final isReview = !_isEditing && widget.draft != null;
 
     return Scaffold(
@@ -177,28 +165,11 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
               decoration: const InputDecoration(labelText: 'Notes (optional)'),
               maxLines: 3,
             ),
-            const SizedBox(height: 20),
-            Text('Priority', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            StarRating(value: _priority, size: 30, onChanged: (v) => setState(() => _priority = v)),
-            const SizedBox(height: 20),
-            Text('Estimated duration (optional)', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            _DurationChips(value: _duration, onChanged: (v) => setState(() => _duration = v)),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _costController,
-              decoration: InputDecoration(
-                labelText: 'Estimated cost (optional)',
-                prefixText: '${currencySymbol(trip.currency)} ',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            ),
             const SizedBox(height: 12),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Favorite'),
-              secondary: const Icon(Icons.favorite_rounded, color: Color(0xFFE53935)),
+              secondary: const Icon(Icons.star_rounded, color: Color(0xFFFFB300)),
               value: _isFavorite,
               onChanged: (v) => setState(() => _isFavorite = v),
             ),
@@ -242,7 +213,6 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
 
     final tripId = widget.editing?.tripId ?? context.read<TripProvider>().current.trip.id;
     final provider = context.read<PlacesProvider>();
-    final cost = double.tryParse(_costController.text.trim());
 
     final place = SavedPlace(
       id: widget.editing?.id ?? 'place-${DateTime.now().microsecondsSinceEpoch}',
@@ -253,11 +223,7 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
       category: _category!,
       area: _areaController.text.trim(),
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-      priority: _priority,
-      estimatedDuration: _duration,
-      estimatedCost: cost,
       isFavorite: _isFavorite,
-      photoUrl: widget.editing?.photoUrl ?? widget.draft?.photoUrl,
       googleMapsUrl: widget.editing?.googleMapsUrl ?? widget.draft?.googleMapsUrl,
       source: widget.editing?.source ?? widget.draft?.source ?? PlaceSource.manual,
     );
@@ -316,48 +282,6 @@ class _CategoryButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-const _durationOptions = <Duration?>[
-  null,
-  Duration(minutes: 30),
-  Duration(hours: 1),
-  Duration(hours: 2),
-  Duration(hours: 3),
-  Duration(hours: 4),
-  Duration(hours: 8),
-];
-
-class _DurationChips extends StatelessWidget {
-  final Duration? value;
-  final ValueChanged<Duration?> onChanged;
-
-  const _DurationChips({required this.value, required this.onChanged});
-
-  String _label(Duration? d) {
-    if (d == null) return 'None';
-    if (d.inHours >= 8) return 'Full day';
-    if (d.inHours >= 4) return 'Half day';
-    if (d.inMinutes < 60) return '${d.inMinutes}m';
-    final hours = d.inHours;
-    return '${hours}h';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        for (final option in _durationOptions)
-          ChoiceChip(
-            label: Text(_label(option)),
-            selected: value == option,
-            onSelected: (_) => onChanged(option),
-          ),
-      ],
     );
   }
 }

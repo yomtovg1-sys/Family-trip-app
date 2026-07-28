@@ -12,7 +12,6 @@ class PlaceDraft {
   final PlaceCategory? category;
   final String? area;
   final String? notes;
-  final String? photoUrl;
   final String? googleMapsUrl;
   final PlaceSource source;
 
@@ -23,7 +22,6 @@ class PlaceDraft {
     this.category,
     this.area,
     this.notes,
-    this.photoUrl,
     this.googleMapsUrl,
     this.source = PlaceSource.manual,
   });

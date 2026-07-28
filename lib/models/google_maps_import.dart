@@ -43,7 +43,6 @@ class GoogleMapsImportCandidate {
   final double? longitude;
   final String? address;
   final PlaceCategory? category;
-  final String? photoUrl;
   final String googleMapsUrl;
   final String? notes;
   final String listName;
@@ -54,7 +53,6 @@ class GoogleMapsImportCandidate {
     this.longitude,
     this.address,
     this.category,
-    this.photoUrl,
     required this.googleMapsUrl,
     this.notes,
     required this.listName,

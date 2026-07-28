@@ -15,6 +15,7 @@ import 'screens/itinerary_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/packing_screen.dart';
 import 'screens/photo_journal_screen.dart';
+import 'screens/places_screen.dart';
 import 'screens/reservations_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/travel_wallet_screen.dart';
@@ -50,6 +51,7 @@ class FamilyTripApp extends StatelessWidget {
           AppSection.homeRoute: (_) => const HomeScreen(),
           AppSection.itineraryRoute: (_) => const ItineraryScreen(),
           AppSection.mapRoute: (_) => const MapScreen(),
+          AppSection.placesRoute: (_) => const PlacesScreen(),
           AppSection.packingRoute: (_) => const PackingScreen(),
           AppSection.expensesRoute: (_) => const ExpensesScreen(),
           AppSection.reservationsRoute: (_) => const ReservationsScreen(),
