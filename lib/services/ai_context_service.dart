@@ -57,7 +57,7 @@ class ProviderAIContextService implements AIContextService {
       reservations: reservations,
       walletDocuments: walletDocuments,
       expenses: dashboard.expenses,
-      packingItems: packingProvider.items,
+      packingItems: packingProvider.forTrip(tripId),
       memories: memoriesProvider.forTrip(tripId),
       anchorLocation: placesProvider.simulatedCurrentLocation(tripId),
     );

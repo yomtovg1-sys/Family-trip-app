@@ -25,6 +25,8 @@ class AppSection {
   static const String aiAssistantRoute = '/ai-assistant';
   static const String travelWalletRoute = '/travel-wallet';
   static const String syncBackupRoute = '/sync-backup';
+  static const String personalVaultRoute = '/personal-vault';
+  static const String tripManagerRoute = '/trip-manager';
 
   static const home = AppSection(
     route: homeRoute,
@@ -110,8 +112,23 @@ class AppSection {
     color: Color(0xFF1971C2),
   );
 
+  static const personalVault = AppSection(
+    route: personalVaultRoute,
+    title: 'Personal Vault',
+    icon: Icons.shield_rounded,
+    color: Color(0xFF00838F),
+  );
+
+  static const tripManager = AppSection(
+    route: tripManagerRoute,
+    title: 'Trip Manager',
+    icon: Icons.dashboard_customize_rounded,
+    color: Color(0xFF5C6BC0),
+  );
+
   static const List<AppSection> all = [
     home,
+    tripManager,
     itinerary,
     map,
     places,
@@ -119,6 +136,7 @@ class AppSection {
     expenses,
     reservations,
     travelWallet,
+    personalVault,
     memories,
     tasks,
     aiAssistant,

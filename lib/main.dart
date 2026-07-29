@@ -16,16 +16,24 @@ import 'screens/itinerary_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/memories_screen.dart';
 import 'screens/packing_screen.dart';
+import 'screens/personal_vault_screen.dart';
 import 'screens/places_screen.dart';
 import 'screens/reservations_screen.dart';
 import 'screens/sync_backup_screen.dart';
 import 'screens/tasks_screen.dart';
 import 'screens/travel_wallet_screen.dart';
+import 'screens/trip_manager_screen.dart';
 import 'services/backup_manager.dart';
 import 'services/backup_repository.dart';
 import 'services/cloud_repository.dart';
+import 'services/personal_vault.dart';
 import 'services/settings_repository.dart';
 import 'services/sync_service.dart';
+import 'services/template_repository.dart';
+import 'services/trip_link_service.dart';
+import 'services/trip_manager.dart';
+import 'services/trip_repository.dart';
+import 'services/vault_repository.dart';
 import 'theme/app_theme.dart';
 import 'widgets/app_section.dart';
 
@@ -44,10 +52,24 @@ class FamilyTripApp extends StatelessWidget {
     );
     final backupRepository = LocalBackupRepository();
     const cloudRepository = UnavailableCloudRepository(CloudProviderKind.googleDrive);
+    final tripRepository = InMemoryTripRepository();
+    final tripLinkService = TripLinkService();
+    final templateRepository = InMemoryTemplateRepository();
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TripProvider()),
+        ChangeNotifierProvider(create: (_) => PersonalVault(repository: InMemoryVaultRepository())),
+        ChangeNotifierProvider(
+          create: (context) => TripManager(
+            tripRepository: tripRepository,
+            personalVault: context.read<PersonalVault>(),
+            linkService: tripLinkService,
+            templateRepository: templateRepository,
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TripProvider(tripManager: context.read<TripManager>()),
+        ),
         ChangeNotifierProvider(create: (_) => ItineraryProvider()),
         ChangeNotifierProvider(create: (_) => PackingProvider()),
         ChangeNotifierProvider(create: (_) => ReservationsProvider()),
@@ -93,6 +115,8 @@ class FamilyTripApp extends StatelessWidget {
           AppSection.tasksRoute: (_) => const TasksScreen(),
           AppSection.aiAssistantRoute: (_) => const AIAssistantScreen(),
           AppSection.syncBackupRoute: (_) => const SyncBackupScreen(),
+          AppSection.personalVaultRoute: (_) => const PersonalVaultScreen(),
+          AppSection.tripManagerRoute: (_) => const TripManagerScreen(),
         },
       ),
     );

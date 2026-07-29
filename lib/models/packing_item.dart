@@ -1,5 +1,6 @@
 class PackingItem {
   final String id;
+  final String tripId;
   final String name;
   final String category;
   final String assignedTo;
@@ -7,6 +8,7 @@ class PackingItem {
 
   PackingItem({
     required this.id,
+    required this.tripId,
     required this.name,
     required this.category,
     required this.assignedTo,
@@ -15,6 +17,7 @@ class PackingItem {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'tripId': tripId,
         'name': name,
         'category': category,
         'assignedTo': assignedTo,
@@ -24,6 +27,7 @@ class PackingItem {
   factory PackingItem.fromJson(Map<String, dynamic> json) {
     return PackingItem(
       id: json['id'] as String,
+      tripId: json['tripId'] as String? ?? '',
       name: json['name'] as String,
       category: json['category'] as String,
       assignedTo: json['assignedTo'] as String,

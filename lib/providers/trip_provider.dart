@@ -6,6 +6,7 @@ import '../models/travel_document.dart';
 import '../models/trip.dart';
 import '../models/trip_snapshot.dart';
 import '../models/weather_snapshot.dart';
+import '../services/trip_manager.dart';
 import '../utils/placeholder_bytes.dart';
 
 bool _isSameDay(DateTime a, DateTime b) =>
@@ -126,23 +127,79 @@ class TripDashboard {
   bool _in24hWindow(int hoursUntil) => hoursUntil > 0 && hoursUntil <= 24;
 }
 
+/// Dashboard-only data for one trip — everything [TripDashboard] needs
+/// besides the [Trip] identity itself, which lives in [TripManager]/
+/// [TripRepository] and is never duplicated here.
+class _DashboardExtras {
+  final List<JourneyStop> journeyStops;
+  final WeatherSnapshot? weather;
+  final List<ExpenseEntry> expenses;
+  final List<TravelDocument> documents;
+  final DateTime? passportExpiryDate;
+
+  _DashboardExtras({
+    required this.journeyStops,
+    this.weather,
+    required this.expenses,
+    List<TravelDocument>? documents,
+    this.passportExpiryDate,
+  }) : documents = documents ?? [];
+
+  /// A safe, always-valid default for a trip with no dashboard extras yet
+  /// (e.g. one just created): a single journey stop spanning the whole
+  /// trip, no expenses, no documents.
+  factory _DashboardExtras.startingPoint(Trip trip) => _DashboardExtras(
+        journeyStops: [JourneyStop(location: trip.destination, start: trip.startDate, end: trip.endDate)],
+        expenses: [],
+      );
+}
+
+/// The Home dashboard's view of trip data. [TripManager] is the source of
+/// truth for which trips exist and which is active — this class only adds
+/// the dashboard-specific extras (journey stops, weather, expenses,
+/// trip-level documents) on top, keyed by the same trip ids, and mirrors
+/// [TripManager]'s notifications so every screen watching [TripProvider]
+/// (unchanged from before) keeps working exactly as it did.
 class TripProvider extends ChangeNotifier {
-  final List<TripDashboard> _dashboards = _seedDashboards();
-  int _selectedIndex = 0;
+  final TripManager tripManager;
+  final Map<String, _DashboardExtras> _extras = _seedExtras();
 
-  List<TripDashboard> get all => List.unmodifiable(_dashboards);
-
-  TripDashboard get current => _dashboards[_selectedIndex];
-
-  Trip get trip => current.trip;
-
-  void selectTrip(String tripId) {
-    final index = _dashboards.indexWhere((d) => d.trip.id == tripId);
-    if (index != -1 && index != _selectedIndex) {
-      _selectedIndex = index;
-      notifyListeners();
-    }
+  TripProvider({required this.tripManager}) {
+    tripManager.addListener(_onTripManagerChanged);
   }
+
+  void _onTripManagerChanged() => notifyListeners();
+
+  List<TripDashboard> get all => [for (final trip in tripManager.trips) _dashboardFor(trip)];
+
+  TripDashboard get current => _dashboardFor(tripManager.currentTrip);
+
+  Trip get trip => tripManager.currentTrip;
+
+  TripDashboard _dashboardFor(Trip trip) {
+    final extras = _extras[trip.id] ?? _DashboardExtras.startingPoint(trip);
+    return TripDashboard(
+      trip: trip,
+      journeyStops: extras.journeyStops,
+      weather: extras.weather,
+      expenses: extras.expenses,
+      documents: extras.documents,
+      passportExpiryDate: extras.passportExpiryDate,
+    );
+  }
+
+  _DashboardExtras _extrasFor(String tripId) {
+    return _extras.putIfAbsent(tripId, () => _DashboardExtras.startingPoint(_tripById(tripId)));
+  }
+
+  Trip _tripById(String tripId) {
+    for (final trip in tripManager.trips) {
+      if (trip.id == tripId) return trip;
+    }
+    return tripManager.currentTrip;
+  }
+
+  void selectTrip(String tripId) => tripManager.selectTrip(tripId);
 
   void addTrip({
     required String name,
@@ -151,44 +208,22 @@ class TripProvider extends ChangeNotifier {
     required DateTime startDate,
     required DateTime endDate,
   }) {
-    final trip = Trip(
-      id: 'trip-${DateTime.now().millisecondsSinceEpoch}',
+    tripManager.createTrip(
       name: name,
       destination: destination,
+      flagEmoji: flagEmoji,
       startDate: startDate,
       endDate: endDate,
-      heroEmoji: flagEmoji,
-      flagEmoji: flagEmoji,
     );
-    _dashboards.add(
-      TripDashboard(
-        trip: trip,
-        journeyStops: [
-          JourneyStop(location: destination, start: startDate, end: endDate),
-        ],
-        weather: null,
-        expenses: const [],
-      ),
-    );
-    _selectedIndex = _dashboards.length - 1;
-    notifyListeners();
-  }
-
-  TripDashboard? _dashboardFor(String tripId) {
-    for (final d in _dashboards) {
-      if (d.trip.id == tripId) return d;
-    }
-    return null;
   }
 
   void addTripDocument(String tripId, TravelDocument document) {
-    _dashboardFor(tripId)?.documents.add(document);
+    _extrasFor(tripId).documents.add(document);
     notifyListeners();
   }
 
   void renameTripDocument(String tripId, String documentId, String newName) {
-    final documents = _dashboardFor(tripId)?.documents;
-    if (documents == null) return;
+    final documents = _extrasFor(tripId).documents;
     final index = documents.indexWhere((d) => d.id == documentId);
     if (index != -1) {
       documents[index] = documents[index].copyWith(fileName: newName);
@@ -197,93 +232,77 @@ class TripProvider extends ChangeNotifier {
   }
 
   void removeTripDocument(String tripId, String documentId) {
-    _dashboardFor(tripId)?.documents.removeWhere((d) => d.id == documentId);
+    _extrasFor(tripId).documents.removeWhere((d) => d.id == documentId);
     notifyListeners();
   }
 
   void addExpense(String tripId, ExpenseEntry expense) {
-    _dashboardFor(tripId)?.expenses.add(expense);
+    _extrasFor(tripId).expenses.add(expense);
     notifyListeners();
   }
 
-  /// Applies a [TripSnapshot] from a backup restore or import: replaces the
-  /// matching trip's core data (trip fields, journey stops, expenses,
-  /// trip-level documents), or adds it as a new trip if it doesn't exist
-  /// locally yet. Weather and passport-expiry aren't part of the backup
-  /// payload, so they carry over from the existing dashboard when there is
-  /// one.
+  List<ExpenseEntry> expensesForTrip(String tripId) => List.unmodifiable(_extrasFor(tripId).expenses);
+
+  void removeExpense(String tripId, String expenseId) {
+    _extrasFor(tripId).expenses.removeWhere((e) => e.id == expenseId);
+    notifyListeners();
+  }
+
+  /// Applies a [TripSnapshot] from a backup restore or import: registers
+  /// the trip identity with [TripManager] (never a duplicate — an existing
+  /// id is replaced in place), then replaces the matching dashboard extras
+  /// (journey stops, expenses, trip-level documents). Weather and
+  /// passport-expiry aren't part of the backup payload, so they carry over
+  /// from the existing dashboard when there is one.
   void restoreTripSnapshot(TripSnapshot snapshot) {
-    final index = _dashboards.indexWhere((d) => d.trip.id == snapshot.trip.id);
-    final restored = TripDashboard(
-      trip: snapshot.trip,
+    tripManager.upsertTrip(snapshot.trip);
+    final previous = _extras[snapshot.trip.id];
+    _extras[snapshot.trip.id] = _DashboardExtras(
       journeyStops: snapshot.journeyStops.isNotEmpty
           ? snapshot.journeyStops
-          : [JourneyStop(location: snapshot.trip.destination, start: snapshot.trip.startDate, end: snapshot.trip.endDate)],
-      weather: index != -1 ? _dashboards[index].weather : null,
+          : [
+              JourneyStop(
+                location: snapshot.trip.destination,
+                start: snapshot.trip.startDate,
+                end: snapshot.trip.endDate,
+              ),
+            ],
+      weather: previous?.weather,
       expenses: List.of(snapshot.expenses),
       documents: List.of(snapshot.documents),
-      passportExpiryDate: index != -1 ? _dashboards[index].passportExpiryDate : null,
+      passportExpiryDate: previous?.passportExpiryDate,
     );
-
-    if (index != -1) {
-      _dashboards[index] = restored;
-    } else {
-      _dashboards.add(restored);
-      _selectedIndex = _dashboards.length - 1;
-    }
     notifyListeners();
   }
 
-  static List<TripDashboard> _seedDashboards() {
+  @override
+  void dispose() {
+    tripManager.removeListener(_onTripManagerChanged);
+    super.dispose();
+  }
+
+  static Map<String, _DashboardExtras> _seedExtras() {
     final now = DateTime.now();
 
-    final tahoe = Trip(
-      id: 'trip-tahoe',
-      name: 'Griswold Family Summer Adventure',
-      destination: 'Lake Tahoe, California',
-      startDate: now.add(const Duration(days: 21)),
-      endDate: now.add(const Duration(days: 28)),
-      heroEmoji: '🏔️',
-      flagEmoji: '🇺🇸',
-      photoAsset: 'assets/images/family_hero.jpg',
-      currency: 'USD',
-    );
+    final tahoeStart = now.add(const Duration(days: 21));
+    final tahoeEnd = now.add(const Duration(days: 28));
+    final japanStart = now.add(const Duration(days: 410));
+    final japanEnd = now.add(const Duration(days: 424));
+    final italyStart = now.subtract(const Duration(days: 201));
+    final italyEnd = now.subtract(const Duration(days: 191));
 
-    final japan = Trip(
-      id: 'trip-japan',
-      name: 'Japan Family Adventure',
-      destination: 'Tokyo, Japan',
-      startDate: now.add(const Duration(days: 410)),
-      endDate: now.add(const Duration(days: 424)),
-      heroEmoji: '🗼',
-      flagEmoji: '🇯🇵',
-      currency: 'JPY',
-    );
-
-    final italy = Trip(
-      id: 'trip-italy',
-      name: 'Italy Family Trip',
-      destination: 'Rome, Italy',
-      startDate: now.subtract(const Duration(days: 201)),
-      endDate: now.subtract(const Duration(days: 191)),
-      heroEmoji: '🍝',
-      flagEmoji: '🇮🇹',
-      currency: 'EUR',
-    );
-
-    return [
-      TripDashboard(
-        trip: tahoe,
+    return {
+      'trip-tahoe': _DashboardExtras(
         journeyStops: [
           JourneyStop(
             location: 'South Lake Tahoe',
-            start: tahoe.startDate,
-            end: tahoe.startDate.add(const Duration(days: 4)),
+            start: tahoeStart,
+            end: tahoeStart.add(const Duration(days: 4)),
           ),
           JourneyStop(
             location: 'Truckee',
-            start: tahoe.startDate.add(const Duration(days: 4)),
-            end: tahoe.endDate,
+            start: tahoeStart.add(const Duration(days: 4)),
+            end: tahoeEnd,
           ),
         ],
         weather: const WeatherSnapshot(
@@ -380,28 +399,27 @@ class TripProvider extends ChangeNotifier {
           ),
         ],
       ),
-      TripDashboard(
-        trip: japan,
+      'trip-japan': _DashboardExtras(
         journeyStops: [
           JourneyStop(
             location: 'Tokyo',
-            start: japan.startDate,
-            end: japan.startDate.add(const Duration(days: 3)),
+            start: japanStart,
+            end: japanStart.add(const Duration(days: 3)),
           ),
           JourneyStop(
             location: 'Hakone',
-            start: japan.startDate.add(const Duration(days: 3)),
-            end: japan.startDate.add(const Duration(days: 5)),
+            start: japanStart.add(const Duration(days: 3)),
+            end: japanStart.add(const Duration(days: 5)),
           ),
           JourneyStop(
             location: 'Kyoto',
-            start: japan.startDate.add(const Duration(days: 5)),
-            end: japan.startDate.add(const Duration(days: 9)),
+            start: japanStart.add(const Duration(days: 5)),
+            end: japanStart.add(const Duration(days: 9)),
           ),
           JourneyStop(
             location: 'Osaka',
-            start: japan.startDate.add(const Duration(days: 9)),
-            end: japan.endDate,
+            start: japanStart.add(const Duration(days: 9)),
+            end: japanEnd,
           ),
         ],
         weather: const WeatherSnapshot(
@@ -454,23 +472,22 @@ class TripProvider extends ChangeNotifier {
         ],
         passportExpiryDate: now.add(const Duration(days: 90)),
       ),
-      TripDashboard(
-        trip: italy,
+      'trip-italy': _DashboardExtras(
         journeyStops: [
           JourneyStop(
             location: 'Rome',
-            start: italy.startDate,
-            end: italy.startDate.add(const Duration(days: 3)),
+            start: italyStart,
+            end: italyStart.add(const Duration(days: 3)),
           ),
           JourneyStop(
             location: 'Florence',
-            start: italy.startDate.add(const Duration(days: 3)),
-            end: italy.startDate.add(const Duration(days: 6)),
+            start: italyStart.add(const Duration(days: 3)),
+            end: italyStart.add(const Duration(days: 6)),
           ),
           JourneyStop(
             location: 'Venice',
-            start: italy.startDate.add(const Duration(days: 6)),
-            end: italy.endDate,
+            start: italyStart.add(const Duration(days: 6)),
+            end: italyEnd,
           ),
         ],
         weather: null,
@@ -481,7 +498,7 @@ class TripProvider extends ChangeNotifier {
             amount: 1100,
             currency: 'EUR',
             category: ExpenseCategory.flights,
-            date: italy.startDate,
+            date: italyStart,
           ),
           ExpenseEntry(
             id: 'i2',
@@ -489,7 +506,7 @@ class TripProvider extends ChangeNotifier {
             amount: 1400,
             currency: 'EUR',
             category: ExpenseCategory.hotel,
-            date: italy.startDate.add(const Duration(days: 1)),
+            date: italyStart.add(const Duration(days: 1)),
           ),
           ExpenseEntry(
             id: 'i3',
@@ -497,7 +514,7 @@ class TripProvider extends ChangeNotifier {
             amount: 680,
             currency: 'EUR',
             category: ExpenseCategory.food,
-            date: italy.startDate.add(const Duration(days: 2)),
+            date: italyStart.add(const Duration(days: 2)),
           ),
           ExpenseEntry(
             id: 'i4',
@@ -505,7 +522,7 @@ class TripProvider extends ChangeNotifier {
             amount: 150,
             currency: 'EUR',
             category: ExpenseCategory.attractions,
-            date: italy.startDate.add(const Duration(days: 3)),
+            date: italyStart.add(const Duration(days: 3)),
           ),
           ExpenseEntry(
             id: 'i5',
@@ -513,7 +530,7 @@ class TripProvider extends ChangeNotifier {
             amount: 220,
             currency: 'EUR',
             category: ExpenseCategory.shopping,
-            date: italy.startDate.add(const Duration(days: 7)),
+            date: italyStart.add(const Duration(days: 7)),
           ),
           ExpenseEntry(
             id: 'i6',
@@ -521,10 +538,10 @@ class TripProvider extends ChangeNotifier {
             amount: 90,
             currency: 'EUR',
             category: ExpenseCategory.attractions,
-            date: italy.startDate.add(const Duration(days: 8)),
+            date: italyStart.add(const Duration(days: 8)),
           ),
         ],
       ),
-    ];
+    };
   }
 }

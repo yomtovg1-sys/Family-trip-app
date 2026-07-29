@@ -263,6 +263,20 @@ class HomeScreen extends StatelessWidget {
         color: const Color(0xFF1971C2),
         onTap: () => go(AppSection.syncBackupRoute),
       ),
+      _QuickAccessCard(
+        title: 'Personal Vault',
+        subtitle: 'Passports, licenses & more',
+        icon: Icons.shield_rounded,
+        color: const Color(0xFF00838F),
+        onTap: () => go(AppSection.personalVaultRoute),
+      ),
+      _QuickAccessCard(
+        title: 'Trip Manager',
+        subtitle: 'All trips, one place',
+        icon: Icons.dashboard_customize_rounded,
+        color: const Color(0xFF5C6BC0),
+        onTap: () => go(AppSection.tripManagerRoute),
+      ),
     ];
   }
 }

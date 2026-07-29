@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/packing_provider.dart';
+import '../providers/trip_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 
@@ -9,10 +10,14 @@ class PackingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final packing = context.watch<PackingProvider>();
+    final tripId = context.watch<TripProvider>().current.trip.id;
+    final items = context.watch<PackingProvider>().forTrip(tripId);
+    final packedCount = items.where((i) => i.isPacked).length;
+    final progress = items.isEmpty ? 0.0 : packedCount / items.length;
+
     final byCategory = <String, List<int>>{};
-    for (var i = 0; i < packing.items.length; i++) {
-      byCategory.putIfAbsent(packing.items[i].category, () => []).add(i);
+    for (var i = 0; i < items.length; i++) {
+      byCategory.putIfAbsent(items[i].category, () => []).add(i);
     }
 
     return Scaffold(
@@ -24,39 +29,50 @@ class PackingScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                LinearProgressIndicator(value: packing.progress, minHeight: 8),
+                LinearProgressIndicator(value: progress, minHeight: 8),
                 const SizedBox(height: 8),
-                Text('${packing.packedCount} of ${packing.items.length} items packed'),
+                Text('$packedCount of ${items.length} items packed'),
               ],
             ),
           ),
           Expanded(
-            child: ListView(
-              children: [
-                for (final category in byCategory.keys)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                        child: Text(
-                          category,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                        ),
+            child: items.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'No packing items for this trip yet.',
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      for (final index in byCategory[category]!)
-                        CheckboxListTile(
-                          value: packing.items[index].isPacked,
-                          title: Text(packing.items[index].name),
-                          subtitle: Text('Assigned to ${packing.items[index].assignedTo}'),
-                          onChanged: (_) => packing.togglePacked(packing.items[index].id),
+                    ),
+                  )
+                : ListView(
+                    children: [
+                      for (final category in byCategory.keys)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                              child: Text(
+                                category,
+                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                      color: Colors.grey[600],
+                                    ),
+                              ),
+                            ),
+                            for (final index in byCategory[category]!)
+                              CheckboxListTile(
+                                value: items[index].isPacked,
+                                title: Text(items[index].name),
+                                subtitle: Text('Assigned to ${items[index].assignedTo}'),
+                                onChanged: (_) =>
+                                    context.read<PackingProvider>().togglePacked(items[index].id),
+                              ),
+                          ],
                         ),
                     ],
                   ),
-              ],
-            ),
           ),
         ],
       ),
