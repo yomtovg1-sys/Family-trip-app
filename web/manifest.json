@@ -3,9 +3,9 @@
     "short_name": "EasyTrip",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A cross-platform family travel planner app",
+    "background_color": "#FAF8F5",
+    "theme_color": "#2E7D6B",
+    "description": "A personal travel companion for planning and tracking family trips",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

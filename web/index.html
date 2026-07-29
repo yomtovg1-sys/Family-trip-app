@@ -18,10 +18,13 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A cross-platform family travel planner app">
+  <meta name="description" content="A personal travel companion for planning and tracking family trips">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2E7D6B">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="EasyTrip">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
@@ -42,5 +45,19 @@
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
   <script src="flutter_bootstrap.js" async></script>
+
+  <!--
+    Registers a hand-written offline-caching service worker. Flutter's own
+    built-in service worker support is deprecated in this SDK version (it
+    now ships a no-op worker that unregisters itself), so offline support
+    for the app shell is provided independently here instead.
+  -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('pwa-service-worker.js');
+      });
+    }
+  </script>
 </body>
 </html>
