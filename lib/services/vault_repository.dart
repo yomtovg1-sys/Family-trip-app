@@ -1,3 +1,4 @@
+import '../models/document_category.dart';
 import '../models/travel_document.dart';
 import '../models/vault_document.dart';
 import '../utils/placeholder_bytes.dart';
@@ -40,7 +41,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-passport-galit',
         holderName: 'Galit',
-        category: VaultDocumentCategory.passport,
+        category: DocumentCategory.passport,
         fileName: 'Galit Passport.pdf',
         type: AttachmentType.pdf,
         bytes: placeholderDocumentBytes,
@@ -50,7 +51,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-passport-amit',
         holderName: 'Amit',
-        category: VaultDocumentCategory.passport,
+        category: DocumentCategory.passport,
         fileName: 'Amit Passport.pdf',
         type: AttachmentType.pdf,
         bytes: placeholderDocumentBytes,
@@ -60,7 +61,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-license-family',
         holderName: 'Family',
-        category: VaultDocumentCategory.driverLicense,
+        category: DocumentCategory.driverLicense,
         fileName: 'Family Driver License.pdf',
         type: AttachmentType.pdf,
         bytes: placeholderDocumentBytes,
@@ -70,7 +71,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-idp-family',
         holderName: 'Family',
-        category: VaultDocumentCategory.internationalDrivingPermit,
+        category: DocumentCategory.internationalDrivingPermit,
         fileName: 'International Driving Permit.pdf',
         type: AttachmentType.pdf,
         bytes: placeholderDocumentBytes,
@@ -80,7 +81,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-insurance-family',
         holderName: 'Family',
-        category: VaultDocumentCategory.healthInsurance,
+        category: DocumentCategory.insurance,
         fileName: 'Health Insurance Card.pdf',
         type: AttachmentType.pdf,
         bytes: placeholderDocumentBytes,
@@ -89,7 +90,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-emergency-contacts',
         holderName: 'Family',
-        category: VaultDocumentCategory.emergencyContact,
+        category: DocumentCategory.emergencyContact,
         fileName: 'Emergency Contacts.png',
         type: AttachmentType.image,
         bytes: placeholderImageBytes,
@@ -99,7 +100,7 @@ class InMemoryVaultRepository implements VaultRepository {
       VaultDocument(
         id: 'vault-frequent-flyer',
         holderName: 'Galit',
-        category: VaultDocumentCategory.frequentFlyer,
+        category: DocumentCategory.frequentFlyer,
         fileName: 'SkyMiles Card.png',
         type: AttachmentType.image,
         bytes: placeholderImageBytes,

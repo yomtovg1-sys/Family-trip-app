@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/document_category.dart';
 import '../models/expense_entry.dart';
 import '../models/journey_stop.dart';
 import '../models/travel_alert.dart';
@@ -201,22 +202,6 @@ class TripProvider extends ChangeNotifier {
 
   void selectTrip(String tripId) => tripManager.selectTrip(tripId);
 
-  void addTrip({
-    required String name,
-    required String destination,
-    required String flagEmoji,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) {
-    tripManager.createTrip(
-      name: name,
-      destination: destination,
-      flagEmoji: flagEmoji,
-      startDate: startDate,
-      endDate: endDate,
-    );
-  }
-
   void addTripDocument(String tripId, TravelDocument document) {
     _extrasFor(tripId).documents.add(document);
     notifyListeners();
@@ -376,8 +361,7 @@ class TripProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 12)),
-            category: TripDocumentCategory.passport,
-            tag: DocumentTag.passport,
+            category: DocumentCategory.passport,
           ),
           TravelDocument(
             id: 'doc2',
@@ -385,8 +369,7 @@ class TripProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 9)),
-            category: TripDocumentCategory.insurance,
-            tag: DocumentTag.insurance,
+            category: DocumentCategory.insurance,
           ),
           TravelDocument(
             id: 'doc3',
@@ -394,8 +377,7 @@ class TripProvider extends ChangeNotifier {
             type: AttachmentType.image,
             bytes: placeholderImageBytes,
             uploadedAt: now.subtract(const Duration(days: 6)),
-            category: TripDocumentCategory.emergencyContacts,
-            tag: DocumentTag.other,
+            category: DocumentCategory.emergencyContact,
           ),
         ],
       ),

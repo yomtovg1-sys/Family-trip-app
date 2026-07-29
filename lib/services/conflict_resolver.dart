@@ -58,7 +58,6 @@ class ConflictResolver {
       flagEmoji: newer.trip.flagEmoji,
       photoAsset: newer.trip.photoAsset ?? older.trip.photoAsset,
       currency: newer.trip.currency,
-      sharing: newer.trip.sharing ?? older.trip.sharing,
     );
 
     return TripSnapshot(

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../models/document_category.dart';
 import '../models/trip.dart';
 import '../models/trip_template.dart';
-import '../models/vault_document.dart';
 import '../providers/memories_provider.dart';
 import '../providers/packing_provider.dart';
 import '../providers/places_provider.dart';

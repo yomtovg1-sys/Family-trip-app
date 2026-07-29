@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/place.dart';
+import '../models/place_draft.dart';
 import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
 import '../services/google_maps_url_parser.dart';
@@ -17,6 +18,7 @@ import '../widgets/places/place_filter_chips.dart';
 import 'add_place_screen.dart';
 import 'import_google_maps_screen.dart';
 import 'paste_link_screen.dart';
+import 'pick_location_screen.dart';
 import 'place_search_screen.dart';
 
 /// The Map screen — a visual, pin-based view of every place the family has
@@ -192,8 +194,27 @@ class _MapScreenState extends State<MapScreen> {
       onManualEntry: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const AddPlaceScreen()),
       ),
+      onPickFromMap: () => _pickFromMap(tripId),
       onImportFromGoogleMaps: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ImportGoogleMapsScreen(tripId: tripId)),
+      ),
+    );
+  }
+
+  Future<void> _pickFromMap(String tripId) async {
+    final sim = context.read<PlacesProvider>().simulatedCurrentLocation(tripId);
+    final anchor = sim != null ? LatLng(sim.latitude, sim.longitude) : const LatLng(39.0968, -120.0324);
+
+    final picked = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(builder: (_) => PickLocationScreen(initialCenter: anchor)),
+    );
+    if (picked == null || !mounted) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddPlaceScreen(
+          draft: PlaceDraft(latitude: picked.latitude, longitude: picked.longitude),
+        ),
       ),
     );
   }

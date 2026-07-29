@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../models/document_category.dart';
 import '../models/reservation.dart';
 import '../models/travel_document.dart';
 import '../providers/reservations_provider.dart';
@@ -12,6 +13,21 @@ import '../widgets/documents/document_card.dart';
 import 'document_viewer_screen.dart';
 import 'reservation_detail_screen.dart';
 
+/// The subset of [DocumentCategory] values relevant to a whole trip, as
+/// opposed to a single reservation — passports, insurance, licenses, and so
+/// on. Flight/hotel/car-rental/ticket categories are set automatically from
+/// the reservation a document is attached to instead of picked here.
+const _tripDocumentCategories = [
+  DocumentCategory.passport,
+  DocumentCategory.insurance,
+  DocumentCategory.driverLicense,
+  DocumentCategory.internationalDrivingPermit,
+  DocumentCategory.emergencyContact,
+  DocumentCategory.vaccination,
+  DocumentCategory.visa,
+  DocumentCategory.other,
+];
+
 class TravelWalletScreen extends StatefulWidget {
   const TravelWalletScreen({super.key});
 
@@ -22,7 +38,7 @@ class TravelWalletScreen extends StatefulWidget {
 class _TravelWalletScreenState extends State<TravelWalletScreen> with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   String _query = '';
-  DocumentTag? _selectedTag;
+  DocumentCategory? _selectedCategory;
 
   @override
   void initState() {
@@ -63,20 +79,20 @@ class _TravelWalletScreenState extends State<TravelWalletScreen> with SingleTick
       ),
       body: Column(
         children: [
-          _SearchAndTagBar(
+          _SearchAndCategoryBar(
             query: _query,
-            selectedTag: _selectedTag,
+            selectedCategory: _selectedCategory,
             onQueryChanged: (value) => setState(() => _query = value),
-            onTagSelected: (tag) => setState(
-              () => _selectedTag = _selectedTag == tag ? null : tag,
+            onCategorySelected: (category) => setState(
+              () => _selectedCategory = _selectedCategory == category ? null : category,
             ),
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _TripDocumentsTab(tripId: trip.id, query: _query, tag: _selectedTag),
-                _ByReservationTab(tripId: trip.id, query: _query, tag: _selectedTag),
+                _TripDocumentsTab(tripId: trip.id, query: _query, category: _selectedCategory),
+                _ByReservationTab(tripId: trip.id, query: _query, category: _selectedCategory),
               ],
             ),
           ),
@@ -86,7 +102,7 @@ class _TravelWalletScreenState extends State<TravelWalletScreen> with SingleTick
   }
 
   Future<void> _addTripDocument(BuildContext context, String tripId) async {
-    final category = await showModalBottomSheet<TripDocumentCategory>(
+    final category = await showModalBottomSheet<DocumentCategory>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => const _CategoryPickerSheet(),
@@ -98,27 +114,24 @@ class _TravelWalletScreenState extends State<TravelWalletScreen> with SingleTick
       context,
       onPicked: (documents) {
         for (final document in documents) {
-          tripProvider.addTripDocument(
-            tripId,
-            document.copyWith(category: category, tag: category.defaultDocumentTag),
-          );
+          tripProvider.addTripDocument(tripId, document.copyWith(category: category));
         }
       },
     );
   }
 }
 
-class _SearchAndTagBar extends StatelessWidget {
+class _SearchAndCategoryBar extends StatelessWidget {
   final String query;
-  final DocumentTag? selectedTag;
+  final DocumentCategory? selectedCategory;
   final ValueChanged<String> onQueryChanged;
-  final ValueChanged<DocumentTag> onTagSelected;
+  final ValueChanged<DocumentCategory> onCategorySelected;
 
-  const _SearchAndTagBar({
+  const _SearchAndCategoryBar({
     required this.query,
-    required this.selectedTag,
+    required this.selectedCategory,
     required this.onQueryChanged,
-    required this.onTagSelected,
+    required this.onCategorySelected,
   });
 
   @override
@@ -150,13 +163,13 @@ class _SearchAndTagBar extends StatelessWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                for (final tag in DocumentTag.values)
+                for (final category in DocumentCategory.values)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
-                    child: _TagChip(
-                      tag: tag,
-                      selected: selectedTag == tag,
-                      onTap: () => onTagSelected(tag),
+                    child: _CategoryChip(
+                      category: category,
+                      selected: selectedCategory == category,
+                      onTap: () => onCategorySelected(category),
                     ),
                   ),
               ],
@@ -168,22 +181,22 @@ class _SearchAndTagBar extends StatelessWidget {
   }
 }
 
-class _TagChip extends StatelessWidget {
-  final DocumentTag tag;
+class _CategoryChip extends StatelessWidget {
+  final DocumentCategory category;
   final bool selected;
   final VoidCallback onTap;
 
-  const _TagChip({required this.tag, required this.selected, required this.onTap});
+  const _CategoryChip({required this.category, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Material(
-      color: selected ? tag.color.withValues(alpha: 0.14) : Colors.transparent,
+      color: selected ? category.color.withValues(alpha: 0.14) : Colors.transparent,
       shape: StadiumBorder(
         side: BorderSide(
-          color: selected ? tag.color.withValues(alpha: 0.5) : theme.colorScheme.outlineVariant,
+          color: selected ? category.color.withValues(alpha: 0.5) : theme.colorScheme.outlineVariant,
         ),
       ),
       child: InkWell(
@@ -194,12 +207,13 @@ class _TagChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(tag.icon, size: 14, color: selected ? tag.color : theme.colorScheme.onSurfaceVariant),
+              Icon(category.icon,
+                  size: 14, color: selected ? category.color : theme.colorScheme.onSurfaceVariant),
               const SizedBox(width: 6),
               Text(
-                tag.label,
+                category.label,
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: selected ? tag.color : theme.colorScheme.onSurfaceVariant,
+                  color: selected ? category.color : theme.colorScheme.onSurfaceVariant,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
@@ -243,7 +257,7 @@ class _CategoryPickerSheet extends StatelessWidget {
             const SizedBox(height: 18),
             Text('What kind of document?', style: theme.textTheme.titleLarge),
             const SizedBox(height: 14),
-            for (final category in TripDocumentCategory.values)
+            for (final category in _tripDocumentCategories)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
@@ -263,9 +277,9 @@ class _CategoryPickerSheet extends StatelessWidget {
 class _TripDocumentsTab extends StatelessWidget {
   final String tripId;
   final String query;
-  final DocumentTag? tag;
+  final DocumentCategory? category;
 
-  const _TripDocumentsTab({required this.tripId, required this.query, required this.tag});
+  const _TripDocumentsTab({required this.tripId, required this.query, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -310,15 +324,15 @@ class _TripDocumentsTab extends StatelessWidget {
       );
     }
 
-    final byCategory = <TripDocumentCategory, List<TravelDocument>>{};
+    final byCategory = <DocumentCategory, List<TravelDocument>>{};
     for (final doc in documents) {
-      byCategory.putIfAbsent(doc.category ?? TripDocumentCategory.other, () => []).add(doc);
+      byCategory.putIfAbsent(doc.category, () => []).add(doc);
     }
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       children: [
-        for (final category in TripDocumentCategory.values)
+        for (final category in DocumentCategory.values)
           if (byCategory[category] != null) ...[
             Row(
               children: [
@@ -356,12 +370,11 @@ class _TripDocumentsTab extends StatelessWidget {
   List<TravelDocument> _filter(List<TravelDocument> documents) {
     final lowerQuery = query.trim().toLowerCase();
     return documents.where((doc) {
-      final matchesTag = tag == null || doc.tag == tag;
+      final matchesCategory = category == null || doc.category == category;
       final matchesQuery = lowerQuery.isEmpty ||
           doc.fileName.toLowerCase().contains(lowerQuery) ||
-          doc.tag.label.toLowerCase().contains(lowerQuery) ||
-          (doc.category?.label.toLowerCase().contains(lowerQuery) ?? false);
-      return matchesTag && matchesQuery;
+          doc.category.label.toLowerCase().contains(lowerQuery);
+      return matchesCategory && matchesQuery;
     }).toList();
   }
 
@@ -386,9 +399,9 @@ class _TripDocumentsTab extends StatelessWidget {
 class _ByReservationTab extends StatelessWidget {
   final String tripId;
   final String query;
-  final DocumentTag? tag;
+  final DocumentCategory? category;
 
-  const _ByReservationTab({required this.tripId, required this.query, required this.tag});
+  const _ByReservationTab({required this.tripId, required this.query, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -419,13 +432,13 @@ class _ByReservationTab extends StatelessWidget {
     }
 
     final lowerQuery = query.trim().toLowerCase();
-    final hasFilter = lowerQuery.isNotEmpty || tag != null;
+    final hasFilter = lowerQuery.isNotEmpty || category != null;
     final reservations = hasFilter
         ? allReservations.where((r) => r.attachments.any((doc) {
-              final matchesTag = tag == null || doc.tag == tag;
+              final matchesCategory = category == null || doc.category == category;
               final matchesQuery =
                   lowerQuery.isEmpty || doc.fileName.toLowerCase().contains(lowerQuery);
-              return matchesTag && matchesQuery;
+              return matchesCategory && matchesQuery;
             })).toList()
         : allReservations;
 
@@ -593,7 +606,7 @@ class _ReservationDocsRow extends StatelessWidget {
         for (final document in documents) {
           provider.addAttachment(
             reservation.id,
-            document.copyWith(tag: reservation.category.defaultDocumentTag),
+            document.copyWith(category: reservation.category.defaultDocumentCategory),
           );
         }
       },

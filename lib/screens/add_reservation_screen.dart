@@ -276,7 +276,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     await showAddDocumentSheet(
       context,
       onPicked: (documents) => setState(() => _attachments.addAll(
-            documents.map((d) => d.copyWith(tag: _category.defaultDocumentTag)),
+            documents.map((d) => d.copyWith(category: _category.defaultDocumentCategory)),
           )),
     );
   }

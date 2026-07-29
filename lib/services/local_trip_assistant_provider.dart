@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import '../models/ai_chat_message.dart';
+import '../models/document_category.dart';
 import '../models/expense_entry.dart';
 import '../models/place.dart';
 import '../models/reservation.dart';
@@ -402,14 +403,14 @@ class LocalTripAssistantProvider implements AIProvider {
     Iterable<TravelDocument> filtered = docs;
     String what = 'documents';
     if (text.contains('passport')) {
-      filtered = docs.where((d) => d.tag.label == 'Passport' || d.fileName.toLowerCase().contains('passport'));
+      filtered = docs.where((d) => d.category.label == 'Passport' || d.fileName.toLowerCase().contains('passport'));
       what = 'passports';
     } else if (text.contains('insurance')) {
-      filtered = docs.where((d) => d.tag.label == 'Insurance');
+      filtered = docs.where((d) => d.category.label == 'Insurance');
       what = 'insurance documents';
     } else if (text.contains('boarding')) {
       filtered = docs.where((d) =>
-          d.tag.label == 'Flight' ||
+          d.category.label == 'Flight' ||
           d.fileName.toLowerCase().contains('boarding') ||
           d.looksLikeQrCode);
       what = 'boarding passes';

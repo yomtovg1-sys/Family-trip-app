@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'document_category.dart';
 import 'travel_document.dart';
 
 enum ReservationCategory { flight, hotel, transportation, ticket, other }
@@ -79,21 +80,21 @@ extension ReservationCategoryX on ReservationCategory {
     }
   }
 
-  /// The sensible default [DocumentTag] for a document uploaded to a
-  /// reservation of this category, so every upload gets a useful tag
+  /// The sensible default [DocumentCategory] for a document uploaded to a
+  /// reservation of this category, so every upload gets a useful category
   /// without an extra picker step.
-  DocumentTag get defaultDocumentTag {
+  DocumentCategory get defaultDocumentCategory {
     switch (this) {
       case ReservationCategory.flight:
-        return DocumentTag.flight;
+        return DocumentCategory.flight;
       case ReservationCategory.hotel:
-        return DocumentTag.hotel;
+        return DocumentCategory.hotel;
       case ReservationCategory.transportation:
-        return DocumentTag.carRental;
+        return DocumentCategory.carRental;
       case ReservationCategory.ticket:
-        return DocumentTag.tickets;
+        return DocumentCategory.tickets;
       case ReservationCategory.other:
-        return DocumentTag.other;
+        return DocumentCategory.other;
     }
   }
 }

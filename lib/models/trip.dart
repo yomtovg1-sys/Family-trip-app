@@ -1,5 +1,3 @@
-import 'trip_sharing.dart';
-
 class Trip {
   final String id;
   final String name;
@@ -11,11 +9,6 @@ class Trip {
   final String? photoAsset;
   final String currency;
 
-  /// Owner/editors/viewers for this trip. Null means "not shared yet" — the
-  /// effective owner is whichever account is signed in. See
-  /// [TripSharing] for why this exists before any sharing UI does.
-  final TripSharing? sharing;
-
   const Trip({
     required this.id,
     required this.name,
@@ -26,7 +19,6 @@ class Trip {
     this.flagEmoji = '🌍',
     this.photoAsset,
     this.currency = 'USD',
-    this.sharing,
   });
 
   Duration get timeUntilStart => startDate.difference(DateTime.now());
@@ -47,7 +39,6 @@ class Trip {
         'flagEmoji': flagEmoji,
         'photoAsset': photoAsset,
         'currency': currency,
-        'sharing': sharing?.toJson(),
       };
 
   factory Trip.fromJson(Map<String, dynamic> json) {
@@ -61,9 +52,6 @@ class Trip {
       flagEmoji: json['flagEmoji'] as String? ?? '🌍',
       photoAsset: json['photoAsset'] as String?,
       currency: json['currency'] as String? ?? 'USD',
-      sharing: json['sharing'] != null
-          ? TripSharing.fromJson(json['sharing'] as Map<String, dynamic>)
-          : null,
     );
   }
 }

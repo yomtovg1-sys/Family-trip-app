@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../models/document_category.dart';
 import '../models/vault_document.dart';
 import '../services/personal_vault.dart';
 import '../widgets/app_drawer.dart';
@@ -8,6 +9,22 @@ import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
 import 'document_viewer_screen.dart';
+
+/// The subset of [DocumentCategory] values relevant to a permanent,
+/// personal document — passports, licenses, insurance, and so on.
+/// Flight/hotel/car-rental/ticket categories are reservation-specific and
+/// don't apply to the vault.
+const _vaultDocumentCategories = [
+  DocumentCategory.passport,
+  DocumentCategory.driverLicense,
+  DocumentCategory.internationalDrivingPermit,
+  DocumentCategory.insurance,
+  DocumentCategory.frequentFlyer,
+  DocumentCategory.loungeMembership,
+  DocumentCategory.emergencyContact,
+  DocumentCategory.visa,
+  DocumentCategory.other,
+];
 
 /// The Personal Vault: permanent family documents — passports, licenses,
 /// insurance cards — that live outside any single trip. Every document
@@ -23,7 +40,7 @@ class PersonalVaultScreen extends StatelessWidget {
     final theme = Theme.of(context);
     final documents = context.watch<PersonalVault>().documents;
 
-    final byCategory = <VaultDocumentCategory, List<VaultDocument>>{};
+    final byCategory = <DocumentCategory, List<VaultDocument>>{};
     for (final doc in documents) {
       byCategory.putIfAbsent(doc.category, () => []).add(doc);
     }
@@ -84,7 +101,7 @@ class PersonalVaultScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                for (final category in VaultDocumentCategory.values)
+                for (final category in DocumentCategory.values)
                   if (byCategory[category] != null) ...[
                     Row(
                       children: [
@@ -154,7 +171,7 @@ class PersonalVaultScreen extends StatelessWidget {
   }
 
   Future<void> _addDocument(BuildContext context) async {
-    final category = await showModalBottomSheet<VaultDocumentCategory>(
+    final category = await showModalBottomSheet<DocumentCategory>(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (_) => const _VaultCategoryPickerSheet(),
@@ -264,7 +281,7 @@ class _VaultCategoryPickerSheet extends StatelessWidget {
               child: ListView(
                 shrinkWrap: true,
                 children: [
-                  for (final category in VaultDocumentCategory.values)
+                  for (final category in _vaultDocumentCategories)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(

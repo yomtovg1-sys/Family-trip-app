@@ -8,6 +8,7 @@ Future<void> showAddPlaceSheet(
   required VoidCallback onScanScreenshot,
   required VoidCallback onPasteWebsite,
   required VoidCallback onManualEntry,
+  required VoidCallback onPickFromMap,
   required VoidCallback onImportFromGoogleMaps,
 }) {
   return showModalBottomSheet(
@@ -20,6 +21,7 @@ Future<void> showAddPlaceSheet(
       onScanScreenshot: onScanScreenshot,
       onPasteWebsite: onPasteWebsite,
       onManualEntry: onManualEntry,
+      onPickFromMap: onPickFromMap,
       onImportFromGoogleMaps: onImportFromGoogleMaps,
     ),
   );
@@ -31,6 +33,7 @@ class _AddPlaceSheet extends StatelessWidget {
   final VoidCallback onScanScreenshot;
   final VoidCallback onPasteWebsite;
   final VoidCallback onManualEntry;
+  final VoidCallback onPickFromMap;
   final VoidCallback onImportFromGoogleMaps;
 
   const _AddPlaceSheet({
@@ -39,6 +42,7 @@ class _AddPlaceSheet extends StatelessWidget {
     required this.onScanScreenshot,
     required this.onPasteWebsite,
     required this.onManualEntry,
+    required this.onPickFromMap,
     required this.onImportFromGoogleMaps,
   });
 
@@ -125,6 +129,15 @@ class _AddPlaceSheet extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).pop();
                   onManualEntry();
+                },
+              ),
+              _OptionTile(
+                emoji: '📍',
+                title: 'Pick from map',
+                subtitle: 'Drop a pin on the map to save it',
+                onTap: () {
+                  Navigator.of(context).pop();
+                  onPickFromMap();
                 },
               ),
               const Divider(height: 20),

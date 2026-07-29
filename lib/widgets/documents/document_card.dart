@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../models/document_category.dart';
 import '../../models/travel_document.dart';
 import 'rename_document_dialog.dart';
 
@@ -75,18 +76,18 @@ class DocumentCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (document.looksLikeQrCode || document.tag != DocumentTag.other)
+                  if (document.looksLikeQrCode || document.category != DocumentCategory.other)
                     Positioned(
                       top: 4,
                       left: 4,
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: document.looksLikeQrCode ? Colors.black87 : document.tag.color,
+                          color: document.looksLikeQrCode ? Colors.black87 : document.category.color,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          document.looksLikeQrCode ? Icons.qr_code_rounded : document.tag.icon,
+                          document.looksLikeQrCode ? Icons.qr_code_rounded : document.category.icon,
                           color: Colors.white,
                           size: 13,
                         ),

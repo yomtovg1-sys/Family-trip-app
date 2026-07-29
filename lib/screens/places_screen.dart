@@ -6,10 +6,15 @@ import '../models/place.dart';
 import '../models/place_draft.dart';
 import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
+import '../services/google_maps_url_parser.dart';
+import '../services/place_extractors.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
-import '../widgets/places/simple_add_place_sheet.dart';
+import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/places/add_place_sheet.dart';
 import 'add_place_screen.dart';
+import 'import_google_maps_screen.dart';
+import 'paste_link_screen.dart';
 import 'pick_location_screen.dart';
 import 'place_search_screen.dart';
 
@@ -118,15 +123,53 @@ class _PlacesScreenState extends State<PlacesScreen> {
   }
 
   void _showAddSheet(String tripId) {
-    showSimpleAddPlaceSheet(
+    showAddPlaceSheet(
       context,
-      onAddManually: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const AddPlaceScreen()),
-      ),
       onSearch: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const PlaceSearchScreen()),
       ),
+      onPasteUrl: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PasteLinkScreen(
+            title: 'Paste Google Maps URL',
+            hint: 'https://www.google.com/maps/place/...',
+            helperText: "Share a place from the Google Maps app and paste the link here — "
+                "we'll pull out its coordinates.",
+            notFoundMessage: "Couldn't find coordinates in that link. Try Manual entry instead.",
+            onParse: (link) async => parseGoogleMapsUrl(link),
+          ),
+        ),
+      ),
+      onScanScreenshot: () => showAddDocumentSheet(
+        context,
+        onPicked: (documents) async {
+          if (documents.isEmpty || !mounted) return;
+          const extractor = MockPlaceScreenshotExtractor();
+          final draft = await extractor.extract(documents.first.bytes);
+          if (!mounted) return;
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => AddPlaceScreen(draft: draft)),
+          );
+        },
+      ),
+      onPasteWebsite: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PasteLinkScreen(
+            title: 'Paste Website',
+            hint: 'https://example-restaurant.com',
+            helperText: "Paste a restaurant, hotel, or attraction's website and we'll pull out its name.",
+            notFoundMessage: "Couldn't read that website.",
+            onParse: (link) => const MockWebsitePlaceExtractor().extract(link),
+          ),
+        ),
+      ),
+      onManualEntry: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const AddPlaceScreen()),
+      ),
       onPickFromMap: () => _pickFromMap(tripId),
+      onImportFromGoogleMaps: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => ImportGoogleMapsScreen(tripId: tripId)),
+      ),
     );
   }
 

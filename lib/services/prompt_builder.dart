@@ -1,8 +1,8 @@
 import 'package:intl/intl.dart';
+import '../models/document_category.dart';
 import '../models/expense_entry.dart';
 import '../models/place.dart';
 import '../models/reservation.dart';
-import '../models/travel_document.dart';
 import '../models/trip_context_model.dart';
 import '../utils/currency.dart';
 
@@ -54,7 +54,7 @@ class PromptBuilder {
     buffer.writeln();
     buffer.writeln('Travel wallet documents (${context.walletDocuments.length}):');
     for (final d in context.walletDocuments) {
-      buffer.writeln('- ${d.fileName} [${d.tag.label}]');
+      buffer.writeln('- ${d.fileName} [${d.category.label}]');
     }
 
     buffer.writeln();

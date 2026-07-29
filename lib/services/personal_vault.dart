@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/document_category.dart';
 import '../models/vault_document.dart';
 import 'vault_repository.dart';
 
@@ -15,7 +16,7 @@ class PersonalVault extends ChangeNotifier {
 
   List<VaultDocument> get documents => repository.getAll();
 
-  List<VaultDocument> byCategory(VaultDocumentCategory category) =>
+  List<VaultDocument> byCategory(DocumentCategory category) =>
       documents.where((d) => d.category == category).toList();
 
   VaultDocument? byId(String id) {

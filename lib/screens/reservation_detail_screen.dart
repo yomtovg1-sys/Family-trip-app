@@ -220,7 +220,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         for (final document in documents) {
           provider.addAttachment(
             reservation.id,
-            document.copyWith(tag: reservation.category.defaultDocumentTag),
+            document.copyWith(category: reservation.category.defaultDocumentCategory),
           );
         }
       },

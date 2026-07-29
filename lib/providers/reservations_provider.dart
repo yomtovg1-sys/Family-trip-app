@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/document_category.dart';
 import '../models/reservation.dart';
 import '../models/travel_document.dart';
 import '../utils/placeholder_bytes.dart';
@@ -144,7 +145,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 2)),
-            tag: DocumentTag.flight,
+            category: DocumentCategory.flight,
           ),
         ],
       ),
@@ -181,7 +182,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(days: 8)),
-            tag: DocumentTag.hotel,
+            category: DocumentCategory.hotel,
           ),
           TravelDocument(
             id: 'a3',
@@ -189,7 +190,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.image,
             bytes: placeholderImageBytes,
             uploadedAt: now.subtract(const Duration(days: 1)),
-            tag: DocumentTag.hotel,
+            category: DocumentCategory.hotel,
           ),
         ],
       ),
@@ -213,7 +214,7 @@ class ReservationsProvider extends ChangeNotifier {
             type: AttachmentType.pdf,
             bytes: placeholderDocumentBytes,
             uploadedAt: now.subtract(const Duration(hours: 12)),
-            tag: DocumentTag.tickets,
+            category: DocumentCategory.tickets,
           ),
         ],
       ),
