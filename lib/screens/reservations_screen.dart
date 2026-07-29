@@ -41,7 +41,7 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
     final sortedDates = grouped.keys.toList()..sort();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Reservations · ${trip.name}')),
+      appBar: AppBar(title: const Text('Reservations')),
       drawer: const AppDrawer(currentRoute: AppSection.reservationsRoute),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddFlow(context),

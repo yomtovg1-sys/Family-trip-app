@@ -4,6 +4,7 @@ import '../providers/packing_provider.dart';
 import '../providers/trip_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/empty_state.dart';
 
 class PackingScreen extends StatelessWidget {
   const PackingScreen({super.key});
@@ -37,23 +38,20 @@ class PackingScreen extends StatelessWidget {
           ),
           Expanded(
             child: items.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Text(
-                        'No packing items for this trip yet.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
+                ? const EmptyState(
+                    visual: Text('🧳', style: TextStyle(fontSize: 44)),
+                    title: 'Nothing to pack yet',
+                    subtitle: 'Packing items for this trip will show up here.',
                   )
                 : ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                     children: [
                       for (final category in byCategory.keys)
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                              padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
                               child: Text(
                                 category,
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -62,12 +60,29 @@ class PackingScreen extends StatelessWidget {
                               ),
                             ),
                             for (final index in byCategory[category]!)
-                              CheckboxListTile(
-                                value: items[index].isPacked,
-                                title: Text(items[index].name),
-                                subtitle: Text('Assigned to ${items[index].assignedTo}'),
-                                onChanged: (_) =>
-                                    context.read<PackingProvider>().togglePacked(items[index].id),
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .outlineVariant
+                                        .withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: CheckboxListTile(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  value: items[index].isPacked,
+                                  title: Text(items[index].name),
+                                  subtitle: Text('Assigned to ${items[index].assignedTo}'),
+                                  onChanged: (_) => context
+                                      .read<PackingProvider>()
+                                      .togglePacked(items[index].id),
+                                ),
                               ),
                           ],
                         ),

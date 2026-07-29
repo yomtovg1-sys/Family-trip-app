@@ -35,21 +35,33 @@ class TasksScreen extends StatelessWidget {
                     subtitle: 'Family prep tasks will show up here.',
                   )
                 : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: tasks.length,
                     itemBuilder: (context, index) {
                       final task = tasks[index];
-                      return CheckboxListTile(
-                        value: task.isDone,
-                        onChanged: (_) => tasksProvider.toggleDone(task.id),
-                        title: Text(
-                          task.title,
-                          style: TextStyle(
-                            decoration: task.isDone ? TextDecoration.lineThrough : null,
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4),
                           ),
                         ),
-                        subtitle: Text(
-                          'Assigned to ${task.assignedTo}'
-                          '${task.dueDate != null ? ' · due ${dateFormat.format(task.dueDate!)}' : ''}',
+                        child: CheckboxListTile(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          value: task.isDone,
+                          onChanged: (_) => tasksProvider.toggleDone(task.id),
+                          title: Text(
+                            task.title,
+                            style: TextStyle(
+                              decoration: task.isDone ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'Assigned to ${task.assignedTo}'
+                            '${task.dueDate != null ? ' · due ${dateFormat.format(task.dueDate!)}' : ''}',
+                          ),
                         ),
                       );
                     },

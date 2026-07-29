@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/document_category.dart';
 import '../../models/travel_document.dart';
+import '../image_or_placeholder.dart';
 import 'rename_document_dialog.dart';
 
 class DocumentCard extends StatelessWidget {
@@ -49,7 +50,7 @@ class DocumentCard extends StatelessWidget {
                     height: 90,
                     width: double.infinity,
                     child: document.type == AttachmentType.image
-                        ? Image.memory(document.bytes, fit: BoxFit.cover)
+                        ? ImageOrPlaceholder(bytes: document.bytes, icon: document.type.icon)
                         : Container(
                             color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
                             alignment: Alignment.center,

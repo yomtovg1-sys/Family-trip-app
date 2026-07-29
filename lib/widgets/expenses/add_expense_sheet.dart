@@ -6,6 +6,7 @@ import '../../models/travel_document.dart';
 import '../../services/expense_extractor.dart';
 import '../../utils/currency.dart';
 import '../documents/add_document_sheet.dart';
+import '../image_or_placeholder.dart';
 
 /// The "Add Expense" bottom sheet. Built for speed: amount + category is
 /// enough to save, everything else is optional. Attaching a receipt runs it
@@ -474,15 +475,17 @@ class _ReceiptTile extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: document.type == AttachmentType.image
-                ? Image.memory(document.bytes, width: 40, height: 40, fit: BoxFit.cover)
-                : Container(
-                    width: 40,
-                    height: 40,
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-                    alignment: Alignment.center,
-                    child: Icon(document.type.icon, size: 18, color: theme.colorScheme.primary),
-                  ),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: document.type == AttachmentType.image
+                  ? ImageOrPlaceholder(bytes: document.bytes, icon: document.type.icon, iconSize: 18)
+                  : Container(
+                      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
+                      alignment: Alignment.center,
+                      child: Icon(document.type.icon, size: 18, color: theme.colorScheme.primary),
+                    ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(

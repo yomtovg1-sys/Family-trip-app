@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/memory_photo.dart';
+import 'image_or_placeholder.dart';
 
 class MemoriesPreview extends StatelessWidget {
   final List<MemoryPhoto> photos;
@@ -55,11 +56,10 @@ class MemoriesPreview extends StatelessWidget {
                 final photo = recent[index];
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(18),
-                  child: Image.memory(
-                    photo.bytes,
+                  child: SizedBox(
                     width: 76,
                     height: 76,
-                    fit: BoxFit.cover,
+                    child: ImageOrPlaceholder(bytes: photo.bytes, icon: Icons.photo_rounded),
                   ),
                 );
               },

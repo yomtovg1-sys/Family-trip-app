@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/travel_document.dart';
+import '../widgets/image_or_placeholder.dart';
 import '../widgets/documents/rename_document_dialog.dart';
 
 class DocumentViewerScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
         children: [
           Expanded(
             child: Center(
-              child: _document.type == AttachmentType.image
+              child: _document.type == AttachmentType.image && looksLikeRealImage(_document.bytes)
                   ? InteractiveViewer(
                       minScale: 0.5,
                       maxScale: 4,

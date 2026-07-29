@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/memory_photo.dart';
+import '../image_or_placeholder.dart';
 
 /// A photo grid that supports drag-and-drop reordering (long-press a photo
 /// and drag it onto another to swap positions), used by both the Memories
@@ -83,7 +84,7 @@ class _PhotoTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.memory(photo.bytes, fit: BoxFit.cover),
+            ImageOrPlaceholder(bytes: photo.bytes, icon: Icons.photo_rounded),
             if (photo.caption != null && photo.caption!.trim().isNotEmpty)
               Positioned(
                 left: 0,
@@ -156,7 +157,7 @@ class _DragFeedback extends StatelessWidget {
           height: 150 / 0.82,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(18),
-            child: Image.memory(photo.bytes, fit: BoxFit.cover),
+            child: ImageOrPlaceholder(bytes: photo.bytes, icon: Icons.photo_rounded),
           ),
         ),
       ),
