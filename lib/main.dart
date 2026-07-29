@@ -97,7 +97,7 @@ class FamilyTripApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Family Trip Planner',
+        title: 'EasyTrip',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,

@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="family_trip_app"
+        android:label="EasyTrip"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
