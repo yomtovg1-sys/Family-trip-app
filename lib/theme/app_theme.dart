@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppTheme {
@@ -11,6 +12,20 @@ class AppTheme {
     bodySmall: TextStyle(letterSpacing: 0.1, height: 1.35),
   );
 
+  /// Subtle, native-feeling page transitions on every platform — a soft
+  /// horizontal slide (iOS-style) instead of the platform-default fade/zoom,
+  /// so navigating between screens feels consistent everywhere the app runs.
+  static const _pageTransitionsTheme = PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+      TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
+    },
+  );
+
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
@@ -21,6 +36,7 @@ class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
+        pageTransitionsTheme: _pageTransitionsTheme,
       );
 
   static ThemeData get dark => ThemeData(
@@ -35,5 +51,6 @@ class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
+        pageTransitionsTheme: _pageTransitionsTheme,
       );
 }

@@ -57,7 +57,7 @@ class PackingScreen extends StatelessWidget {
                               child: Text(
                                 category,
                                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                      color: Colors.grey[600],
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                               ),
                             ),

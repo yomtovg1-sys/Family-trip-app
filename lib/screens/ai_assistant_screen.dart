@@ -112,10 +112,6 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     }
   }
 
-  void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$feature is coming soon')));
-  }
-
   @override
   Widget build(BuildContext context) {
     final trip = context.watch<TripProvider>().current.trip;
@@ -158,8 +154,6 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
               _inputController.clear();
               _chatController.sendMessage(text);
             },
-            onVoiceTap: () => _showComingSoon('Voice chat'),
-            onImageTap: () => _showComingSoon('Image understanding'),
           ),
         ],
       ),
@@ -444,14 +438,10 @@ class _TypingIndicator extends StatelessWidget {
 class _ChatInputBar extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
-  final VoidCallback onVoiceTap;
-  final VoidCallback onImageTap;
 
   const _ChatInputBar({
     required this.controller,
     required this.onSend,
-    required this.onVoiceTap,
-    required this.onImageTap,
   });
 
   @override
@@ -461,19 +451,9 @@ class _ChatInputBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(
           children: [
-            IconButton(
-              onPressed: onImageTap,
-              icon: Icon(Icons.image_outlined, color: theme.colorScheme.onSurfaceVariant),
-              tooltip: 'Image understanding (coming soon)',
-            ),
-            IconButton(
-              onPressed: onVoiceTap,
-              icon: Icon(Icons.mic_none_rounded, color: theme.colorScheme.onSurfaceVariant),
-              tooltip: 'Voice chat (coming soon)',
-            ),
             Expanded(
               child: TextField(
                 controller: controller,

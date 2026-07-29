@@ -103,7 +103,7 @@ class _AddPlaceSheet extends StatelessWidget {
               _OptionTile(
                 emoji: '📸',
                 title: 'Scan screenshot',
-                subtitle: 'AI-read a place card screenshot (coming soon)',
+                subtitle: 'AI-read a place card screenshot',
                 onTap: () {
                   Navigator.of(context).pop();
                   onScanScreenshot();

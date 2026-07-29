@@ -636,26 +636,23 @@ class _ExportCard extends StatelessWidget {
             RadioGroup<ExportFormat>(
               groupValue: format,
               onChanged: (value) {
-                if (value != null && value.isAvailable) onFormatChanged(value);
+                if (value != null) onFormatChanged(value);
               },
               child: Column(
                 children: [
-                  for (final option in ExportFormat.values)
-                    Opacity(
-                      opacity: option.isAvailable ? 1 : 0.5,
-                      child: RadioListTile<ExportFormat>(
-                        contentPadding: EdgeInsets.zero,
-                        value: option,
-                        title: Text(option.label),
-                        subtitle: Text(option.description),
-                      ),
+                  for (final option in ExportFormat.values.where((f) => f.isAvailable))
+                    RadioListTile<ExportFormat>(
+                      contentPadding: EdgeInsets.zero,
+                      value: option,
+                      title: Text(option.label),
+                      subtitle: Text(option.description),
                     ),
                 ],
               ),
             ),
             const SizedBox(height: 8),
             FilledButton.icon(
-              onPressed: busy || !format.isAvailable ? null : onExport,
+              onPressed: busy ? null : onExport,
               icon: const Icon(Icons.ios_share_rounded, size: 18),
               label: const Text('Export Trip'),
             ),
@@ -790,12 +787,6 @@ class _SharedTripsCard extends StatelessWidget {
               'view-only members underneath — so inviting family here will be a small addition later, '
               'not a rebuild.',
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 14),
-            OutlinedButton.icon(
-              onPressed: null,
-              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-              label: const Text('Invite Collaborators (Coming Soon)'),
             ),
           ],
         ),

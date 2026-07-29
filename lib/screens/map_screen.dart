@@ -110,6 +110,13 @@ class _MapScreenState extends State<MapScreen> {
               onSelected: (f) => _onFilterSelected(f, trip.id),
             ),
           ),
+          if (allPlaces.isEmpty)
+            Positioned(
+              left: 32,
+              right: 32,
+              top: 90,
+              child: _MapEmptyState(onAddPlace: () => _showAddPlace(trip.id)),
+            ),
           if (nearby.isNotEmpty)
             Positioned(
               left: 12,
@@ -187,6 +194,47 @@ class _MapScreenState extends State<MapScreen> {
       ),
       onImportFromGoogleMaps: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => ImportGoogleMapsScreen(tripId: tripId)),
+      ),
+    );
+  }
+}
+
+/// Shown over the map when the trip has no saved places yet — the map
+/// itself still renders (centered on a sensible fallback) so it doesn't
+/// look broken, but this makes clear there's nothing to see yet.
+class _MapEmptyState extends StatelessWidget {
+  final VoidCallback onAddPlace;
+
+  const _MapEmptyState({required this.onAddPlace});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.surface.withValues(alpha: 0.95),
+      borderRadius: BorderRadius.circular(20),
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onAddPlace,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🗺️', style: TextStyle(fontSize: 32)),
+              const SizedBox(height: 10),
+              Text('No places saved yet', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Text(
+                'Tap here to add somewhere you want to visit.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

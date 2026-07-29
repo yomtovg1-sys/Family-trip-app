@@ -40,7 +40,7 @@ class ItineraryScreen extends StatelessWidget {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: Colors.grey[600]),
+                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 16),
                   for (final item in day.items) _ItineraryTile(item: item),

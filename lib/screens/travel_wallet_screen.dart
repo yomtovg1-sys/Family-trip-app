@@ -398,9 +398,22 @@ class _ByReservationTab extends StatelessWidget {
 
     if (allReservations.isEmpty) {
       return Center(
-        child: Text(
-          'No reservations yet',
-          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.confirmation_number_outlined, size: 48, color: theme.colorScheme.outlineVariant),
+              const SizedBox(height: 12),
+              Text('No reservations yet', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
+              const SizedBox(height: 4),
+              Text(
+                'Add a reservation and its documents will show up here, grouped by booking.',
+                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       );
     }
