@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/reservation.dart';
 import '../models/travel_document.dart';
 import '../providers/reservations_provider.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
 import 'add_reservation_screen.dart';
@@ -254,28 +255,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, Reservation reservation) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete reservation?'),
-        content: Text('This will remove "${reservation.title}" permanently.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<ReservationsProvider>().deleteReservation(reservation.id);
-              Navigator.of(dialogContext).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+  Future<void> _confirmDelete(BuildContext context, Reservation reservation) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete reservation?',
+      message: 'This will remove "${reservation.title}" permanently.',
+      isDestructive: true,
     );
+    if (confirmed && context.mounted) {
+      context.read<ReservationsProvider>().deleteReservation(reservation.id);
+      Navigator.of(context).pop();
+    }
   }
 }
 

@@ -15,7 +15,8 @@ import 'ai_provider.dart';
 /// [TripContextModel], which is exactly why it can honestly claim to
 /// "never answer using only general knowledge when trip-specific
 /// information is available." A real LLM provider can be swapped in later
-/// (see [UnavailableRemoteAIProvider]) without touching anything upstream.
+/// by implementing [AIProvider] and passing it to [AIRepository] instead —
+/// nothing upstream needs to change.
 class LocalTripAssistantProvider implements AIProvider {
   const LocalTripAssistantProvider();
 

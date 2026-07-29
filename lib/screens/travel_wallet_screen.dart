@@ -10,6 +10,7 @@ import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
+import '../widgets/empty_state.dart';
 import 'document_viewer_screen.dart';
 import 'reservation_detail_screen.dart';
 
@@ -288,30 +289,11 @@ class _TripDocumentsTab extends StatelessWidget {
     final documents = _filter(tripProvider.current.documents);
 
     if (tripProvider.current.documents.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.folder_open_rounded, size: 48, color: theme.colorScheme.outlineVariant),
-              const SizedBox(height: 12),
-              Text(
-                'No trip documents yet',
-                style: theme.textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Passports, insurance, visas, and other documents for the '
-                'whole trip live here — tap + to add one.',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return EmptyState(
+        visual: Icon(Icons.folder_open_rounded, size: 48, color: theme.colorScheme.outlineVariant),
+        title: 'No trip documents yet',
+        subtitle: 'Passports, insurance, visas, and other documents for the '
+            'whole trip live here — tap + to add one.',
       );
     }
 
@@ -410,24 +392,10 @@ class _ByReservationTab extends StatelessWidget {
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
     if (allReservations.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.confirmation_number_outlined, size: 48, color: theme.colorScheme.outlineVariant),
-              const SizedBox(height: 12),
-              Text('No reservations yet', style: theme.textTheme.titleMedium, textAlign: TextAlign.center),
-              const SizedBox(height: 4),
-              Text(
-                'Add a reservation and its documents will show up here, grouped by booking.',
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+      return EmptyState(
+        visual: Icon(Icons.confirmation_number_outlined, size: 48, color: theme.colorScheme.outlineVariant),
+        title: 'No reservations yet',
+        subtitle: 'Add a reservation and its documents will show up here, grouped by booking.',
       );
     }
 

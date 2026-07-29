@@ -17,6 +17,7 @@ import '../services/trip_export_service.dart';
 import '../services/trip_import_service.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/section_header.dart';
 
 String _formatBytes(int bytes) {
@@ -154,21 +155,14 @@ class _SyncBackupScreenState extends State<SyncBackupScreen> {
     );
     if (chosen == null || !mounted) return;
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Restore this backup?'),
-        content: Text(
-          'This replaces your current trip data with the backup from ${_formatWhen(chosen.createdAt)}. '
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Restore this backup?',
+      message: 'This replaces your current trip data with the backup from ${_formatWhen(chosen.createdAt)}. '
           "A safety backup of what's here now will be taken first.",
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Restore')),
-        ],
-      ),
+      confirmLabel: 'Restore',
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     setState(() => _busy = true);
     try {

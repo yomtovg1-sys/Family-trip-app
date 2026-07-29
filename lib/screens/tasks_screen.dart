@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/tasks_provider.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/empty_state.dart';
 
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});
@@ -28,27 +29,10 @@ class TasksScreen extends StatelessWidget {
           ),
           Expanded(
             child: tasks.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('✅', style: TextStyle(fontSize: 44)),
-                          const SizedBox(height: 16),
-                          Text('Nothing to do yet', style: Theme.of(context).textTheme.titleMedium),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Family prep tasks will show up here.',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
+                ? const EmptyState(
+                    visual: Text('✅', style: TextStyle(fontSize: 44)),
+                    title: 'Nothing to do yet',
+                    subtitle: 'Family prep tasks will show up here.',
                   )
                 : ListView.builder(
                     itemCount: tasks.length,

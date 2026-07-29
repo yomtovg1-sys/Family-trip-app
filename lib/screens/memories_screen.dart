@@ -6,6 +6,8 @@ import '../providers/trip_provider.dart';
 import '../services/memory_photo_picker.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/confirm_dialog.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/memories/add_photos_sheet.dart';
 import '../widgets/memories/edit_caption_sheet.dart';
 import '../widgets/memories/reorderable_photo_grid.dart';
@@ -18,7 +20,6 @@ class MemoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final trip = context.watch<TripProvider>().current.trip;
     final photos = context.watch<MemoriesProvider>().forTrip(trip.id);
 
@@ -42,25 +43,10 @@ class MemoriesScreen extends StatelessWidget {
           ),
           Expanded(
             child: photos.isEmpty
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('📷', style: TextStyle(fontSize: 44)),
-                          const SizedBox(height: 16),
-                          Text('No memories yet', style: theme.textTheme.titleMedium),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Tap + to upload your first photo from this trip.',
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
+                ? const EmptyState(
+                    visual: Text('📷', style: TextStyle(fontSize: 44)),
+                    title: 'No memories yet',
+                    subtitle: 'Tap + to upload your first photo from this trip.',
                   )
                 : ReorderablePhotoGrid(
                     photos: photos,
@@ -102,25 +88,13 @@ class MemoriesScreen extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, MemoryPhoto photo) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete photo?'),
-        content: const Text('This photo will be removed from your Memories.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(dialogContext).colorScheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete photo?',
+      message: 'This photo will be removed from your Memories.',
+      isDestructive: true,
     );
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       context.read<MemoriesProvider>().deletePhoto(photo.id);
     }
   }

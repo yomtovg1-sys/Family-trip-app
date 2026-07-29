@@ -84,11 +84,6 @@ class ReservationsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setStatus(String id, ReservationStatus status) {
-    final r = byId(id);
-    if (r != null) updateReservation(r.copyWith(status: status));
-  }
-
   void addAttachment(String reservationId, TravelDocument attachment) {
     final r = byId(reservationId);
     if (r != null) {

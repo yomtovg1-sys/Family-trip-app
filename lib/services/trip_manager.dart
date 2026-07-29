@@ -86,26 +86,11 @@ class TripManager extends ChangeNotifier {
     return trip;
   }
 
-  void updateTrip(Trip trip) {
-    tripRepository.update(trip);
-    notifyListeners();
-  }
-
   /// Registers a trip built elsewhere (a restore, an import) as the
   /// canonical record for its id — inserting it if new, replacing it if it
   /// already exists. Never mints a duplicate.
   void upsertTrip(Trip trip) {
     tripRepository.update(trip);
-    notifyListeners();
-  }
-
-  void deleteTrip(String id) {
-    tripRepository.remove(id);
-    linkService.replaceLinksForTrip(id, const []);
-    if (id == _currentTripId) {
-      final remaining = trips;
-      if (remaining.isNotEmpty) _currentTripId = remaining.first.id;
-    }
     notifyListeners();
   }
 
@@ -123,11 +108,6 @@ class TripManager extends ChangeNotifier {
 
   void detachVaultDocument(String tripId, String vaultDocumentId) {
     linkService.detach(tripId, vaultDocumentId);
-    notifyListeners();
-  }
-
-  void setVaultDocumentsForTrip(String tripId, Iterable<String> vaultDocumentIds) {
-    linkService.replaceLinksForTrip(tripId, vaultDocumentIds);
     notifyListeners();
   }
 

@@ -6,8 +6,10 @@ import '../models/vault_document.dart';
 import '../services/personal_vault.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
+import '../widgets/empty_state.dart';
 import 'document_viewer_screen.dart';
 
 /// The subset of [DocumentCategory] values relevant to a permanent,
@@ -58,25 +60,11 @@ class PersonalVaultScreen extends StatelessWidget {
       ),
       drawer: const AppDrawer(currentRoute: AppSection.personalVaultRoute),
       body: documents.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shield_rounded, size: 48, color: theme.colorScheme.outlineVariant),
-                    const SizedBox(height: 12),
-                    Text('Your vault is empty', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Passports, licenses, insurance cards — upload them once here and '
-                      'attach them to any trip.',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
+          ? EmptyState(
+              visual: Icon(Icons.shield_rounded, size: 48, color: theme.colorScheme.outlineVariant),
+              title: 'Your vault is empty',
+              subtitle: 'Passports, licenses, insurance cards — upload them once here and '
+                  'attach them to any trip.',
             )
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
@@ -151,21 +139,14 @@ class PersonalVaultScreen extends StatelessWidget {
   }
 
   Future<void> _confirmDelete(BuildContext context, VaultDocument document) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete this document?'),
-        content: Text(
-          '"${document.displayName}" will be removed from the vault. Any trip referencing it will no '
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Delete this document?',
+      message: '"${document.displayName}" will be removed from the vault. Any trip referencing it will no '
           'longer show it.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Delete')),
-        ],
-      ),
+      isDestructive: true,
     );
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       context.read<PersonalVault>().removeDocument(document.id);
     }
   }

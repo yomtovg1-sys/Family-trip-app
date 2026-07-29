@@ -11,6 +11,7 @@ import '../services/place_extractors.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/places/add_place_sheet.dart';
 import 'add_place_screen.dart';
 import 'import_google_maps_screen.dart';
@@ -75,7 +76,11 @@ class _PlacesScreenState extends State<PlacesScreen> {
           ),
           Expanded(
             child: places.isEmpty
-                ? const _EmptyState()
+                ? const EmptyState(
+                    visual: Text('🗺️', style: TextStyle(fontSize: 44)),
+                    title: 'No places saved yet',
+                    subtitle: 'Tap + to add somewhere you want to visit on this trip.',
+                  )
                 : filtered.isEmpty
                     ? const _NoResultsState()
                     : ListView.builder(
@@ -333,34 +338,6 @@ class _FavoriteButton extends StatelessWidget {
               size: 24,
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('🗺️', style: const TextStyle(fontSize: 44)),
-            const SizedBox(height: 16),
-            Text('No places saved yet', style: theme.textTheme.titleMedium),
-            const SizedBox(height: 6),
-            Text(
-              'Tap + to add somewhere you want to visit on this trip.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ],
         ),
       ),
     );

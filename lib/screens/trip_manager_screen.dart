@@ -16,6 +16,7 @@ import '../services/trip_manager.dart';
 import '../utils/currency.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/confirm_dialog.dart';
 
 /// The Trip Manager: the visible face of [TripManager]. This is where a
 /// family creates a trip (optionally attaching Personal Vault documents and
@@ -379,22 +380,15 @@ class _TemplateSheet extends StatelessWidget {
   }
 
   Future<void> _confirmApply(BuildContext context, TripTemplate template) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Apply ${template.name}?'),
-        content: Text(
-          'Adds ${template.packingItems.length} packing item(s), '
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Apply ${template.name}?',
+      message: 'Adds ${template.packingItems.length} packing item(s), '
           '${template.favoritePlaces.length} favorite place(s), and '
           '${template.checklist.length} checklist item(s) to this trip.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Apply')),
-        ],
-      ),
+      confirmLabel: 'Apply',
     );
-    if (confirmed != true || !context.mounted) return;
+    if (!confirmed || !context.mounted) return;
 
     context.read<TripManager>().applyTemplate(
           tripId: tripId,

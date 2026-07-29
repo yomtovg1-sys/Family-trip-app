@@ -30,8 +30,7 @@ abstract class CloudRepository {
 
 /// No cloud vendor is wired up yet. Every call throws on purpose — a
 /// deliberate, visible signal when this gets swapped in for real, rather
-/// than a silent no-op somewhere in [SyncService]. Mirrors
-/// `UnavailablePrintingService`.
+/// than a silent no-op somewhere in [SyncService].
 class UnavailableCloudRepository implements CloudRepository {
   const UnavailableCloudRepository(this.providerKind);
 
