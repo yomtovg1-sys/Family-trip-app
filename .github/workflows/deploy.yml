@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+# Builds the Flutter web app and deploys it to GitHub Pages on every push
+# to main. "workflow_dispatch" lets it be re-run manually (e.g. to re-deploy
+# without a new commit) from the Actions tab.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Pages deployment needs to read repo contents, write to the "github-pages"
+# Pages environment, and mint the OIDC token deploy-pages uses to verify
+# the deployment — nothing broader than that.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment should ever be in flight; let a newer push supersede
+# an older one instead of racing it, but never cancel a deploy that's
+# already live-updating the site.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.8
+          channel: stable
+
+      - run: flutter pub get
+
+      - run: flutter analyze
+
+      # GitHub Pages project sites are served from
+      # https://<owner>.github.io/<repo>/, not the domain root, so every
+      # asset URL the app generates needs that repo-name prefix. Flutter
+      # builds for root ("/") by default; --base-href is the one thing that
+      # has to change between a local build and this deployment.
+      - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

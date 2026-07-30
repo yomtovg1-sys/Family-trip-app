@@ -33,7 +33,20 @@ addEventListener("message", eventListener);
 if (!window._flutter) {
   window._flutter = {};
 }
-_flutter.buildConfig = {"engineRevision":"0cd610717bde95fd88343c64f81c11ba4e5c0010","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}]};
+// "useLocalCanvasKit" here is what `flutter build web --no-web-resources-cdn`
+// would normally inject automatically — but that flag only affects the
+// auto-generated flutter_bootstrap.js, and this project uses its own
+// checked-in copy (to also set fontFallbackBaseUrl below), so it has to be
+// set by hand instead. Without it, the engine loads canvaskit.wasm from
+// Google's CDN rather than the copy Flutter already bundles under
+// build/web/canvaskit/ and this project's service worker already
+// precaches — a cross-origin request the service worker deliberately
+// leaves alone (same reasoning as map tiles), so offline, the app
+// couldn't even boot. If a future Flutter upgrade changes engineRevision,
+// update it here too (harmless if stale, since useLocalCanvasKit means
+// it's never used to build a CDN URL — but keeping it accurate avoids
+// confusion).
+_flutter.buildConfig = {"engineRevision":"0cd610717bde95fd88343c64f81c11ba4e5c0010","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js"},{}],"useLocalCanvasKit":true};
 
 _flutter.loader.load({
   // fontFallbackBaseUrl redirects the web engine's automatic "fallback
