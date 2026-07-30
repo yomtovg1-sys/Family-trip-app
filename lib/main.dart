@@ -176,6 +176,20 @@ class FamilyTripApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
+        // The countdown boxes, chips, and other fixed-size elements
+        // throughout this app are laid out for one specific font size —
+        // they don't reflow for a larger one. Left unclamped, a device's
+        // own text-size setting (Safari on iOS reports this to the page,
+        // desktop browsers generally don't) scales every TextStyle up
+        // without any of these fixed-size containers growing to match,
+        // so text that no longer fits wraps mid-word or mid-number
+        // instead of clipping — e.g. "09" breaking across two lines in a
+        // 60x60 countdown box. Locking the scale to the design's intended
+        // 1.0 keeps every screen exactly as designed everywhere.
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+          child: child!,
+        ),
         initialRoute: AppSection.homeRoute,
         routes: {
           AppSection.homeRoute: (_) => const HomeScreen(),
