@@ -1,0 +1,145 @@
+import 'package:flutter/material.dart';
+
+class AppSection {
+  final String route;
+  final String title;
+  final IconData icon;
+  final Color color;
+
+  const AppSection({
+    required this.route,
+    required this.title,
+    required this.icon,
+    required this.color,
+  });
+
+  static const String homeRoute = '/';
+  static const String itineraryRoute = '/itinerary';
+  static const String mapRoute = '/map';
+  static const String placesRoute = '/places';
+  static const String packingRoute = '/packing';
+  static const String expensesRoute = '/expenses';
+  static const String reservationsRoute = '/reservations';
+  static const String photosRoute = '/photos';
+  static const String tasksRoute = '/tasks';
+  static const String aiAssistantRoute = '/ai-assistant';
+  static const String travelWalletRoute = '/travel-wallet';
+  static const String syncBackupRoute = '/sync-backup';
+  static const String personalVaultRoute = '/personal-vault';
+  static const String tripManagerRoute = '/trip-manager';
+
+  static const home = AppSection(
+    route: homeRoute,
+    title: 'Home',
+    icon: Icons.home_rounded,
+    color: Color(0xFF2E7D6B),
+  );
+
+  static const itinerary = AppSection(
+    route: itineraryRoute,
+    title: 'Itinerary',
+    icon: Icons.calendar_month_rounded,
+    color: Color(0xFF3A6EA5),
+  );
+
+  static const map = AppSection(
+    route: mapRoute,
+    title: 'Map',
+    icon: Icons.map_rounded,
+    color: Color(0xFF2F9E44),
+  );
+
+  static const places = AppSection(
+    route: placesRoute,
+    title: 'Places',
+    icon: Icons.travel_explore_rounded,
+    color: Color(0xFFE8590C),
+  );
+
+  static const packing = AppSection(
+    route: packingRoute,
+    title: 'Packing',
+    icon: Icons.checklist_rounded,
+    color: Color(0xFFB5651D),
+  );
+
+  static const expenses = AppSection(
+    route: expensesRoute,
+    title: 'Expenses',
+    icon: Icons.savings_rounded,
+    color: Color(0xFF2B8A8A),
+  );
+
+  static const reservations = AppSection(
+    route: reservationsRoute,
+    title: 'Reservations',
+    icon: Icons.confirmation_number_rounded,
+    color: Color(0xFF6741D9),
+  );
+
+  static const travelWallet = AppSection(
+    route: travelWalletRoute,
+    title: 'Travel Wallet',
+    icon: Icons.account_balance_wallet_rounded,
+    color: Color(0xFF1F7A5C),
+  );
+
+  static const memories = AppSection(
+    route: photosRoute,
+    title: 'Memories',
+    icon: Icons.photo_library_rounded,
+    color: Color(0xFFD6336C),
+  );
+
+  static const tasks = AppSection(
+    route: tasksRoute,
+    title: 'Family Tasks',
+    icon: Icons.task_alt_rounded,
+    color: Color(0xFFE8590C),
+  );
+
+  static const aiAssistant = AppSection(
+    route: aiAssistantRoute,
+    title: 'AI Assistant',
+    icon: Icons.auto_awesome_rounded,
+    color: Color(0xFF6C63FF),
+  );
+
+  static const syncBackup = AppSection(
+    route: syncBackupRoute,
+    title: 'Sync & Backup',
+    icon: Icons.cloud_done_rounded,
+    color: Color(0xFF1971C2),
+  );
+
+  static const personalVault = AppSection(
+    route: personalVaultRoute,
+    title: 'Personal Vault',
+    icon: Icons.shield_rounded,
+    color: Color(0xFF00838F),
+  );
+
+  static const tripManager = AppSection(
+    route: tripManagerRoute,
+    title: 'Trip Manager',
+    icon: Icons.dashboard_customize_rounded,
+    color: Color(0xFF5C6BC0),
+  );
+
+  static const List<AppSection> all = [
+    home,
+    tripManager,
+    itinerary,
+    map,
+    places,
+    packing,
+    expenses,
+    reservations,
+    travelWallet,
+    personalVault,
+    memories,
+    tasks,
+    aiAssistant,
+    syncBackup,
+  ];
+}
