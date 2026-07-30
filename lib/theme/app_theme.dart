@@ -16,6 +16,9 @@ class AppTheme {
   /// icons. Ships with the app, so resolving text through it never needs a
   /// network fetch, online or offline. (Plain symbol glyphs like ★ are
   /// covered separately — see web/index.html and web/fallback_fonts/.)
+  ///
+  /// DIAGNOSTIC: temporarily unused below — see the `light`/`dark` getters.
+  // ignore: unused_field
   static const _emojiFallbackFamilies = ['NotoColorEmoji'];
 
   /// Subtle, native-feeling page transitions on every platform — a soft
@@ -53,9 +56,11 @@ class AppTheme {
     // tracking (e.g. titleMedium: 0.15, labelSmall: 0.5) so text reads with
     // natural, native-feeling spacing everywhere, not just where _textTheme
     // explicitly sets a style.
+    // DIAGNOSTIC: fontFamilyFallback temporarily removed to test whether
+    // Skia's fallback-chain glyph shaping is the trigger for the iOS
+    // Safari/CanvasKit letter-spacing bug. Restore once confirmed either way.
     return base.copyWith(
       textTheme: base.textTheme.apply(
-        fontFamilyFallback: _emojiFallbackFamilies,
         letterSpacingFactor: 0,
       ),
     );
@@ -78,7 +83,6 @@ class AppTheme {
     );
     return base.copyWith(
       textTheme: base.textTheme.apply(
-        fontFamilyFallback: _emojiFallbackFamilies,
         letterSpacingFactor: 0,
       ),
     );
