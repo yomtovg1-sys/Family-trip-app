@@ -9,7 +9,20 @@
 //
 // Bump CACHE_VERSION whenever a new build is deployed so old cached
 // assets from a previous release are dropped instead of lingering forever.
-const CACHE_VERSION = 'easytrip-v4';
+// (Belt-and-suspenders only — see the fetch handler below, which no longer
+// depends on this being bumped for app-code files to update promptly.)
+const CACHE_VERSION = 'easytrip-v5';
+
+// Files that change on every deploy and must never be served stale: the
+// compiled app itself, the loader that fetches it, and the version marker.
+// A previous version of this worker cached these "cache-first" like every
+// other asset, which meant a returning visitor's browser kept serving the
+// *original* main.dart.js forever — no new deploy ever reached them,
+// because nothing here ever told the browser a fresher copy existed.
+// These are matched network-first (falling back to cache only if offline),
+// same as page navigations below, so every deploy reaches every visitor
+// the next time they're online — no manual cache-version bump required.
+const NETWORK_FIRST_FILES = ['main.dart.js', 'flutter_bootstrap.js', 'flutter.js', 'version.json'];
 
 // Everything the app needs to actually boot and render, offline, from a
 // cold start. This has to be precached explicitly rather than left to
@@ -108,9 +121,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Page navigations: prefer a fresh copy when online (so a new deploy is
-  // picked up promptly), falling back to the cached shell when offline.
-  if (request.mode === 'navigate') {
+  const isNetworkFirst =
+    request.mode === 'navigate' || NETWORK_FIRST_FILES.some((name) => request.url.endsWith(name));
+
+  // Page navigations and app-code files: prefer a fresh copy when online
+  // (so a new deploy is picked up on the very next load), falling back to
+  // the cached copy when offline.
+  if (isNetworkFirst) {
     event.respondWith(
       fetch(request)
         .then((response) => {
@@ -123,9 +140,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Everything else: serve from cache immediately if we have it, otherwise
-  // fetch from the network and cache the result for next time (including
-  // offline visits).
+  // Everything else (fonts, canvaskit, icons — large, effectively
+  // immutable assets): serve from cache immediately if we have it,
+  // otherwise fetch from the network and cache the result for next time
+  // (including offline visits).
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
