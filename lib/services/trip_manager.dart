@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../models/document_reference.dart';
 import '../models/family_task.dart';
 import '../models/packing_item.dart';
@@ -31,6 +32,9 @@ class TripManager extends ChangeNotifier {
   final PersonalVault personalVault;
   final TripLinkService linkService;
   final TemplateRepository templateRepository;
+  final Box<String> _appStateBox;
+
+  static const _currentTripIdKey = 'currentTripId';
 
   late String _currentTripId;
 
@@ -39,8 +43,11 @@ class TripManager extends ChangeNotifier {
     required this.personalVault,
     required this.linkService,
     required this.templateRepository,
+    required this._appStateBox,
   }) {
-    _currentTripId = tripRepository.getAll().first.id;
+    final trips = tripRepository.getAll();
+    final savedId = _appStateBox.get(_currentTripIdKey);
+    _currentTripId = (savedId != null && trips.any((t) => t.id == savedId)) ? savedId : trips.first.id;
   }
 
   List<Trip> get trips => tripRepository.getAll();
@@ -53,6 +60,7 @@ class TripManager extends ChangeNotifier {
     if (tripId == _currentTripId) return;
     if (tripRepository.byId(tripId) == null) return;
     _currentTripId = tripId;
+    _appStateBox.put(_currentTripIdKey, tripId);
     notifyListeners();
   }
 
@@ -82,6 +90,7 @@ class TripManager extends ChangeNotifier {
       linkService.replaceLinksForTrip(trip.id, vaultDocumentIds);
     }
     _currentTripId = trip.id;
+    _appStateBox.put(_currentTripIdKey, trip.id);
     notifyListeners();
     return trip;
   }

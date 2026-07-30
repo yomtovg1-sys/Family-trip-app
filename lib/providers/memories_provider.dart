@@ -1,22 +1,40 @@
 import 'package:flutter/material.dart';
 import '../models/memory_photo.dart';
+import '../services/hive_json_store.dart';
 import '../utils/placeholder_bytes.dart';
 
 /// Photos saved to each trip's Memories page. Order is stored per-trip:
 /// seeded chronologically, then whatever the family reorders it to by drag
 /// and drop — this provider doesn't re-sort behind their back.
 class MemoriesProvider extends ChangeNotifier {
-  final List<MemoryPhoto> _photos = _seedPhotos();
+  final HiveJsonStore<MemoryPhoto> _store;
+  final List<MemoryPhoto> _photos;
+
+  MemoriesProvider._(this._store, this._photos);
+
+  static Future<MemoriesProvider> open() async {
+    final store = await HiveJsonStore.open<MemoryPhoto>(
+      'memories',
+      toJson: (p) => p.toJson(),
+      fromJson: MemoryPhoto.fromJson,
+      idOf: (p) => p.id,
+    );
+    final photos = store.isEmpty ? _seedPhotos() : store.getAll();
+    if (store.isEmpty) store.putAll(photos);
+    return MemoriesProvider._(store, photos);
+  }
 
   List<MemoryPhoto> forTrip(String tripId) => _photos.where((p) => p.tripId == tripId).toList();
 
   void addPhotos(List<MemoryPhoto> photos) {
     _photos.addAll(photos);
+    _store.putAll(photos);
     notifyListeners();
   }
 
   void deletePhoto(String id) {
     _photos.removeWhere((p) => p.id == id);
+    _store.remove(id);
     notifyListeners();
   }
 
@@ -25,6 +43,7 @@ class MemoriesProvider extends ChangeNotifier {
   void replaceForTrip(String tripId, List<MemoryPhoto> photos) {
     _photos.removeWhere((p) => p.tripId == tripId);
     _photos.addAll(photos);
+    _store.replaceAll(_photos);
     notifyListeners();
   }
 
@@ -32,7 +51,7 @@ class MemoriesProvider extends ChangeNotifier {
     final index = _photos.indexWhere((p) => p.id == id);
     if (index == -1) return;
     final old = _photos[index];
-    _photos[index] = MemoryPhoto(
+    final updated = MemoryPhoto(
       id: old.id,
       tripId: old.tripId,
       bytes: old.bytes,
@@ -40,6 +59,8 @@ class MemoriesProvider extends ChangeNotifier {
       caption: caption,
       takenAt: old.takenAt,
     );
+    _photos[index] = updated;
+    _store.put(updated);
     notifyListeners();
   }
 
@@ -53,6 +74,7 @@ class MemoriesProvider extends ChangeNotifier {
 
     _photos.removeWhere((p) => p.tripId == tripId);
     _photos.addAll(tripPhotos);
+    _store.replaceAll(_photos);
     notifyListeners();
   }
 

@@ -2,6 +2,7 @@ import '../models/document_category.dart';
 import '../models/travel_document.dart';
 import '../models/vault_document.dart';
 import '../utils/placeholder_bytes.dart';
+import 'hive_json_store.dart';
 
 /// Storage for [VaultDocument]s. Kept separate from [PersonalVault] (the
 /// ChangeNotifier the UI watches) so the storage backend — in-memory today,
@@ -12,6 +13,49 @@ abstract class VaultRepository {
   void add(VaultDocument document);
   void update(VaultDocument document);
   void remove(String id);
+}
+
+/// Persists the Personal Vault's documents on-device via Hive, seeding the
+/// family's starter documents only on a genuine first launch.
+class HiveVaultRepository implements VaultRepository {
+  final HiveJsonStore<VaultDocument> _store;
+  final List<VaultDocument> _documents;
+
+  HiveVaultRepository._(this._store, this._documents);
+
+  static Future<HiveVaultRepository> open() async {
+    final store = await HiveJsonStore.open<VaultDocument>(
+      'vault_documents',
+      toJson: (d) => d.toJson(),
+      fromJson: VaultDocument.fromJson,
+      idOf: (d) => d.id,
+    );
+    final documents = store.isEmpty ? InMemoryVaultRepository._seedDocuments() : store.getAll();
+    if (store.isEmpty) store.putAll(documents);
+    return HiveVaultRepository._(store, documents);
+  }
+
+  @override
+  List<VaultDocument> getAll() => List.unmodifiable(_documents);
+
+  @override
+  void add(VaultDocument document) {
+    _documents.add(document);
+    _store.put(document);
+  }
+
+  @override
+  void update(VaultDocument document) {
+    final index = _documents.indexWhere((d) => d.id == document.id);
+    if (index != -1) _documents[index] = document;
+    _store.put(document);
+  }
+
+  @override
+  void remove(String id) {
+    _documents.removeWhere((d) => d.id == id);
+    _store.remove(id);
+  }
 }
 
 /// The only implementation today: holds documents in memory for the

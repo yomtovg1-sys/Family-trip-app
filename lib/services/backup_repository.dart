@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../models/backup_meta.dart';
 import '../models/backup_snapshot.dart';
 
@@ -17,37 +17,45 @@ abstract class BackupRepository {
   Future<int> totalStorageUsedBytes();
 }
 
-/// Persists snapshots as JSON strings via `shared_preferences` — real
-/// on-device storage, not an in-memory fake, so a backup taken now is still
-/// there after a page reload. Keeps only the most recent [maxHistory]
-/// backups so storage doesn't grow without bound; older ones are evicted
-/// automatically, oldest first.
-class LocalBackupRepository implements BackupRepository {
-  static const _indexKey = 'sync_backup.index';
-  static String _snapshotKey(String id) => 'sync_backup.snapshot.$id';
+/// Persists snapshots via Hive (IndexedDB on web) — real on-device storage,
+/// not an in-memory fake, so a backup taken now is still there after a page
+/// reload. Backup snapshots can carry base64 photo/document bytes and grow
+/// well past what `shared_preferences`/localStorage can reliably hold on
+/// web (~5-10MB total, previously this repository's actual backend); Hive
+/// has no such ceiling. Keeps only the most recent [maxHistory] backups so
+/// storage doesn't grow without bound; older ones are evicted automatically,
+/// oldest first.
+class HiveBackupRepository implements BackupRepository {
+  static const _indexKey = 'index';
+  static String _snapshotKey(String id) => 'snapshot.$id';
 
+  final Box<String> _box;
   final int maxHistory;
 
-  LocalBackupRepository({this.maxHistory = 10});
+  HiveBackupRepository._(this._box, {this.maxHistory = 10});
 
-  Future<List<BackupMeta>> _readIndex(SharedPreferences prefs) async {
-    final raw = prefs.getString(_indexKey);
+  static Future<HiveBackupRepository> open({int maxHistory = 10}) async {
+    final box = await Hive.openBox<String>('backups');
+    return HiveBackupRepository._(box, maxHistory: maxHistory);
+  }
+
+  List<BackupMeta> _readIndex() {
+    final raw = _box.get(_indexKey);
     if (raw == null) return [];
     final list = jsonDecode(raw) as List;
     return [for (final e in list) BackupMeta.fromJson(e as Map<String, dynamic>)];
   }
 
-  Future<void> _writeIndex(SharedPreferences prefs, List<BackupMeta> index) async {
-    await prefs.setString(_indexKey, jsonEncode([for (final m in index) m.toJson()]));
+  void _writeIndex(List<BackupMeta> index) {
+    _box.put(_indexKey, jsonEncode([for (final m in index) m.toJson()]));
   }
 
   @override
   Future<BackupMeta> saveBackup(BackupSnapshot snapshot, {required BackupTrigger trigger}) async {
-    final prefs = await SharedPreferences.getInstance();
     final payload = jsonEncode(snapshot.toJson());
     final id = 'backup-${DateTime.now().microsecondsSinceEpoch}';
 
-    await prefs.setString(_snapshotKey(id), payload);
+    _box.put(_snapshotKey(id), payload);
 
     final meta = BackupMeta(
       id: id,
@@ -57,41 +65,37 @@ class LocalBackupRepository implements BackupRepository {
       tripCount: snapshot.tripCount,
     );
 
-    final index = await _readIndex(prefs)
-      ..add(meta);
+    final index = _readIndex()..add(meta);
     index.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     while (index.length > maxHistory) {
       final evicted = index.removeLast();
-      await prefs.remove(_snapshotKey(evicted.id));
+      _box.delete(_snapshotKey(evicted.id));
     }
 
-    await _writeIndex(prefs, index);
+    _writeIndex(index);
     return meta;
   }
 
   @override
   Future<List<BackupMeta>> listBackups() async {
-    final prefs = await SharedPreferences.getInstance();
-    final index = await _readIndex(prefs);
+    final index = _readIndex();
     index.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return index;
   }
 
   @override
   Future<BackupSnapshot?> loadBackup(String backupId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_snapshotKey(backupId));
+    final raw = _box.get(_snapshotKey(backupId));
     if (raw == null) return null;
     return BackupSnapshot.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
   @override
   Future<void> deleteBackup(String backupId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_snapshotKey(backupId));
-    final index = await _readIndex(prefs)..removeWhere((m) => m.id == backupId);
-    await _writeIndex(prefs, index);
+    _box.delete(_snapshotKey(backupId));
+    final index = _readIndex()..removeWhere((m) => m.id == backupId);
+    _writeIndex(index);
   }
 
   @override

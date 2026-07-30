@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import '../models/document_category.dart';
 import '../models/expense_entry.dart';
 import '../models/journey_stop.dart';
@@ -153,6 +156,27 @@ class _DashboardExtras {
         journeyStops: [JourneyStop(location: trip.destination, start: trip.startDate, end: trip.endDate)],
         expenses: [],
       );
+
+  Map<String, dynamic> toJson() => {
+        'journeyStops': [for (final s in journeyStops) s.toJson()],
+        'weather': weather?.toJson(),
+        'expenses': [for (final e in expenses) e.toJson()],
+        'documents': [for (final d in documents) d.toJson()],
+        'passportExpiryDate': passportExpiryDate?.toIso8601String(),
+      };
+
+  factory _DashboardExtras.fromJson(Map<String, dynamic> json) {
+    return _DashboardExtras(
+      journeyStops: [
+        for (final s in json['journeyStops'] as List) JourneyStop.fromJson(s as Map<String, dynamic>),
+      ],
+      weather: json['weather'] == null ? null : WeatherSnapshot.fromJson(json['weather'] as Map<String, dynamic>),
+      expenses: [for (final e in json['expenses'] as List) ExpenseEntry.fromJson(e as Map<String, dynamic>)],
+      documents: [for (final d in json['documents'] as List) TravelDocument.fromJson(d as Map<String, dynamic>)],
+      passportExpiryDate:
+          json['passportExpiryDate'] == null ? null : DateTime.parse(json['passportExpiryDate'] as String),
+    );
+  }
 }
 
 /// The Home dashboard's view of trip data. [TripManager] is the source of
@@ -163,13 +187,40 @@ class _DashboardExtras {
 /// (unchanged from before) keeps working exactly as it did.
 class TripProvider extends ChangeNotifier {
   final TripManager tripManager;
-  final Map<String, _DashboardExtras> _extras = _seedExtras();
+  final Box<String> _extrasBox;
+  final Map<String, _DashboardExtras> _extras;
 
-  TripProvider({required this.tripManager}) {
+  TripProvider._(this.tripManager, this._extrasBox, this._extras) {
     tripManager.addListener(_onTripManagerChanged);
   }
 
+  /// Loads dashboard extras (journey stops, weather, expenses, trip-level
+  /// documents, passport expiry) from Hive, keyed by trip id. Seeds the
+  /// three starter trips' extras only on a genuine first launch.
+  static Future<TripProvider> open({required TripManager tripManager}) async {
+    final box = await Hive.openBox<String>('dashboard_extras');
+    Map<String, _DashboardExtras> extras;
+    if (box.isEmpty) {
+      extras = _seedExtras();
+      for (final entry in extras.entries) {
+        box.put(entry.key, jsonEncode(entry.value.toJson()));
+      }
+    } else {
+      extras = {
+        for (final key in box.keys)
+          key as String: _DashboardExtras.fromJson(jsonDecode(box.get(key)!) as Map<String, dynamic>),
+      };
+    }
+    return TripProvider._(tripManager, box, extras);
+  }
+
   void _onTripManagerChanged() => notifyListeners();
+
+  void _persist(String tripId) {
+    final extras = _extras[tripId];
+    if (extras == null) return;
+    _extrasBox.put(tripId, jsonEncode(extras.toJson()));
+  }
 
   List<TripDashboard> get all => [for (final trip in tripManager.trips) _dashboardFor(trip)];
 
@@ -190,7 +241,12 @@ class TripProvider extends ChangeNotifier {
   }
 
   _DashboardExtras _extrasFor(String tripId) {
-    return _extras.putIfAbsent(tripId, () => _DashboardExtras.startingPoint(_tripById(tripId)));
+    final existing = _extras[tripId];
+    if (existing != null) return existing;
+    final created = _DashboardExtras.startingPoint(_tripById(tripId));
+    _extras[tripId] = created;
+    _persist(tripId);
+    return created;
   }
 
   Trip _tripById(String tripId) {
@@ -204,6 +260,7 @@ class TripProvider extends ChangeNotifier {
 
   void addTripDocument(String tripId, TravelDocument document) {
     _extrasFor(tripId).documents.add(document);
+    _persist(tripId);
     notifyListeners();
   }
 
@@ -212,17 +269,20 @@ class TripProvider extends ChangeNotifier {
     final index = documents.indexWhere((d) => d.id == documentId);
     if (index != -1) {
       documents[index] = documents[index].copyWith(fileName: newName);
+      _persist(tripId);
       notifyListeners();
     }
   }
 
   void removeTripDocument(String tripId, String documentId) {
     _extrasFor(tripId).documents.removeWhere((d) => d.id == documentId);
+    _persist(tripId);
     notifyListeners();
   }
 
   void addExpense(String tripId, ExpenseEntry expense) {
     _extrasFor(tripId).expenses.add(expense);
+    _persist(tripId);
     notifyListeners();
   }
 
@@ -230,6 +290,7 @@ class TripProvider extends ChangeNotifier {
 
   void removeExpense(String tripId, String expenseId) {
     _extrasFor(tripId).expenses.removeWhere((e) => e.id == expenseId);
+    _persist(tripId);
     notifyListeners();
   }
 
@@ -257,6 +318,7 @@ class TripProvider extends ChangeNotifier {
       documents: List.of(snapshot.documents),
       passportExpiryDate: previous?.passportExpiryDate,
     );
+    _persist(snapshot.trip.id);
     notifyListeners();
   }
 

@@ -2,10 +2,26 @@ import 'package:flutter/material.dart';
 import '../models/document_category.dart';
 import '../models/reservation.dart';
 import '../models/travel_document.dart';
+import '../services/hive_json_store.dart';
 import '../utils/placeholder_bytes.dart';
 
 class ReservationsProvider extends ChangeNotifier {
-  final List<Reservation> _reservations = _seedReservations();
+  final HiveJsonStore<Reservation> _store;
+  final List<Reservation> _reservations;
+
+  ReservationsProvider._(this._store, this._reservations);
+
+  static Future<ReservationsProvider> open() async {
+    final store = await HiveJsonStore.open<Reservation>(
+      'reservations',
+      toJson: (r) => r.toJson(),
+      fromJson: Reservation.fromJson,
+      idOf: (r) => r.id,
+    );
+    final reservations = store.isEmpty ? _seedReservations() : store.getAll();
+    if (store.isEmpty) store.putAll(reservations);
+    return ReservationsProvider._(store, reservations);
+  }
 
   List<Reservation> get reservations => List.unmodifiable(_reservations);
 
@@ -60,6 +76,7 @@ class ReservationsProvider extends ChangeNotifier {
 
   void addReservation(Reservation reservation) {
     _reservations.add(reservation);
+    _store.put(reservation);
     notifyListeners();
   }
 
@@ -67,12 +84,14 @@ class ReservationsProvider extends ChangeNotifier {
     final index = _reservations.indexWhere((r) => r.id == updated.id);
     if (index != -1) {
       _reservations[index] = updated;
+      _store.put(updated);
       notifyListeners();
     }
   }
 
   void deleteReservation(String id) {
     _reservations.removeWhere((r) => r.id == id);
+    _store.remove(id);
     notifyListeners();
   }
 
@@ -81,6 +100,7 @@ class ReservationsProvider extends ChangeNotifier {
   void replaceForTrip(String tripId, List<Reservation> reservations) {
     _reservations.removeWhere((r) => r.tripId == tripId);
     _reservations.addAll(reservations);
+    _store.replaceAll(_reservations);
     notifyListeners();
   }
 

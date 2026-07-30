@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'models/cloud_account.dart';
@@ -37,46 +38,120 @@ import 'services/vault_repository.dart';
 import 'theme/app_theme.dart';
 import 'widgets/app_section.dart';
 
-void main() {
-  runApp(const FamilyTripApp());
-}
+/// Every persisted repository and provider the app needs, fully constructed
+/// and loaded from on-device storage. Building this once — in [main] for a
+/// real run, or directly in a test — is what lets [FamilyTripApp] itself
+/// stay a plain, synchronous widget tree instead of needing a loading
+/// screen while Hive boxes open.
+class AppDependencies {
+  final SettingsRepository settingsRepository;
+  final BackupRepository backupRepository;
+  final CloudRepository cloudRepository;
+  final PersonalVault personalVault;
+  final TripManager tripManager;
+  final TripProvider tripProvider;
+  final ItineraryProvider itineraryProvider;
+  final PackingProvider packingProvider;
+  final ReservationsProvider reservationsProvider;
+  final PlacesProvider placesProvider;
+  final MemoriesProvider memoriesProvider;
+  final TasksProvider tasksProvider;
 
-class FamilyTripApp extends StatelessWidget {
-  const FamilyTripApp({super.key});
+  AppDependencies({
+    required this.settingsRepository,
+    required this.backupRepository,
+    required this.cloudRepository,
+    required this.personalVault,
+    required this.tripManager,
+    required this.tripProvider,
+    required this.itineraryProvider,
+    required this.packingProvider,
+    required this.reservationsProvider,
+    required this.placesProvider,
+    required this.memoriesProvider,
+    required this.tasksProvider,
+  });
 
-  @override
-  Widget build(BuildContext context) {
+  /// Opens every Hive box and loads (or, on a genuine first launch, seeds)
+  /// all persisted app state. Everything here reuses each model's existing
+  /// `toJson`/`fromJson` and each provider's existing seed data — this is a
+  /// storage-backend swap, not a rewrite of what the app already does.
+  static Future<AppDependencies> bootstrap() async {
+    await Hive.initFlutter();
+
     final settingsRepository = LocalSettingsRepository(
       defaultAccountEmail: 'yomtovg1@gmail.com',
       defaultAccountName: 'Family Account',
     );
-    final backupRepository = LocalBackupRepository();
     const cloudRepository = UnavailableCloudRepository(CloudProviderKind.googleDrive);
-    final tripRepository = InMemoryTripRepository();
-    final tripLinkService = TripLinkService();
     final templateRepository = InMemoryTemplateRepository();
 
+    final appStateBox = await Hive.openBox<String>('app_state');
+
+    final backupRepository = await HiveBackupRepository.open();
+    final tripRepository = await HiveTripRepository.open();
+    final vaultRepository = await HiveVaultRepository.open();
+    final tripLinkService = await TripLinkService.open();
+
+    final personalVault = PersonalVault(repository: vaultRepository);
+    final tripManager = TripManager(
+      tripRepository: tripRepository,
+      personalVault: personalVault,
+      linkService: tripLinkService,
+      templateRepository: templateRepository,
+      appStateBox: appStateBox,
+    );
+    final tripProvider = await TripProvider.open(tripManager: tripManager);
+
+    final itineraryProvider = ItineraryProvider();
+    final packingProvider = await PackingProvider.open();
+    final reservationsProvider = await ReservationsProvider.open();
+    final placesProvider = await PlacesProvider.open();
+    final memoriesProvider = await MemoriesProvider.open();
+    final tasksProvider = await TasksProvider.open();
+
+    return AppDependencies(
+      settingsRepository: settingsRepository,
+      backupRepository: backupRepository,
+      cloudRepository: cloudRepository,
+      personalVault: personalVault,
+      tripManager: tripManager,
+      tripProvider: tripProvider,
+      itineraryProvider: itineraryProvider,
+      packingProvider: packingProvider,
+      reservationsProvider: reservationsProvider,
+      placesProvider: placesProvider,
+      memoriesProvider: memoriesProvider,
+      tasksProvider: tasksProvider,
+    );
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final dependencies = await AppDependencies.bootstrap();
+  runApp(FamilyTripApp(dependencies: dependencies));
+}
+
+class FamilyTripApp extends StatelessWidget {
+  final AppDependencies dependencies;
+
+  const FamilyTripApp({super.key, required this.dependencies});
+
+  @override
+  Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => PersonalVault(repository: InMemoryVaultRepository())),
-        ChangeNotifierProvider(
-          create: (context) => TripManager(
-            tripRepository: tripRepository,
-            personalVault: context.read<PersonalVault>(),
-            linkService: tripLinkService,
-            templateRepository: templateRepository,
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => TripProvider(tripManager: context.read<TripManager>()),
-        ),
-        ChangeNotifierProvider(create: (_) => ItineraryProvider()),
-        ChangeNotifierProvider(create: (_) => PackingProvider()),
-        ChangeNotifierProvider(create: (_) => ReservationsProvider()),
-        ChangeNotifierProvider(create: (_) => PlacesProvider()),
-        ChangeNotifierProvider(create: (_) => MemoriesProvider()),
-        ChangeNotifierProvider(create: (_) => TasksProvider()),
-        Provider<SettingsRepository>.value(value: settingsRepository),
+        ChangeNotifierProvider.value(value: dependencies.personalVault),
+        ChangeNotifierProvider.value(value: dependencies.tripManager),
+        ChangeNotifierProvider.value(value: dependencies.tripProvider),
+        ChangeNotifierProvider.value(value: dependencies.itineraryProvider),
+        ChangeNotifierProvider.value(value: dependencies.packingProvider),
+        ChangeNotifierProvider.value(value: dependencies.reservationsProvider),
+        ChangeNotifierProvider.value(value: dependencies.placesProvider),
+        ChangeNotifierProvider.value(value: dependencies.memoriesProvider),
+        ChangeNotifierProvider.value(value: dependencies.tasksProvider),
+        Provider<SettingsRepository>.value(value: dependencies.settingsRepository),
         ChangeNotifierProvider(
           create: (context) => BackupManager(
             tripProvider: context.read<TripProvider>(),
@@ -84,15 +159,15 @@ class FamilyTripApp extends StatelessWidget {
             reservationsProvider: context.read<ReservationsProvider>(),
             packingProvider: context.read<PackingProvider>(),
             memoriesProvider: context.read<MemoriesProvider>(),
-            backupRepository: backupRepository,
-            settingsRepository: settingsRepository,
+            backupRepository: dependencies.backupRepository,
+            settingsRepository: dependencies.settingsRepository,
           ),
         ),
         ChangeNotifierProvider(
           create: (context) => SyncService(
             backupManager: context.read<BackupManager>(),
-            cloudRepository: cloudRepository,
-            settingsRepository: settingsRepository,
+            cloudRepository: dependencies.cloudRepository,
+            settingsRepository: dependencies.settingsRepository,
           ),
         ),
       ],

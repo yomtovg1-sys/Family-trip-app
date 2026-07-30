@@ -50,4 +50,20 @@ class WeatherSnapshot {
     required this.rainChancePercent,
     required this.aiTip,
   });
+
+  Map<String, dynamic> toJson() => {
+        'tempCelsius': tempCelsius,
+        'condition': condition.name,
+        'rainChancePercent': rainChancePercent,
+        'aiTip': aiTip,
+      };
+
+  factory WeatherSnapshot.fromJson(Map<String, dynamic> json) {
+    return WeatherSnapshot(
+      tempCelsius: json['tempCelsius'] as int,
+      condition: WeatherCondition.values.byName(json['condition'] as String),
+      rainChancePercent: json['rainChancePercent'] as int,
+      aiTip: json['aiTip'] as String,
+    );
+  }
 }

@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
 import '../models/google_maps_import.dart';
 import '../models/place.dart';
+import '../services/hive_json_store.dart';
 import '../utils/geo.dart';
 
 /// Places the family has saved for the trip — restaurants to try, viewpoints,
 /// hotels, parking — grouped and filtered on the Map/Places screen. This is
 /// a planning list, not a navigation layer.
 class PlacesProvider extends ChangeNotifier {
-  final List<SavedPlace> _places = _seedPlaces();
+  final HiveJsonStore<SavedPlace> _store;
+  final List<SavedPlace> _places;
+
+  PlacesProvider._(this._store, this._places);
+
+  static Future<PlacesProvider> open() async {
+    final store = await HiveJsonStore.open<SavedPlace>(
+      'places',
+      toJson: (p) => p.toJson(),
+      fromJson: SavedPlace.fromJson,
+      idOf: (p) => p.id,
+    );
+    final places = store.isEmpty ? _seedPlaces() : store.getAll();
+    if (store.isEmpty) store.putAll(places);
+    return PlacesProvider._(store, places);
+  }
 
   List<SavedPlace> get all => List.unmodifiable(_places);
 
@@ -22,6 +38,7 @@ class PlacesProvider extends ChangeNotifier {
 
   void addPlace(SavedPlace place) {
     _places.add(place);
+    _store.put(place);
     notifyListeners();
   }
 
@@ -29,12 +46,14 @@ class PlacesProvider extends ChangeNotifier {
     final index = _places.indexWhere((p) => p.id == updated.id);
     if (index != -1) {
       _places[index] = updated;
+      _store.put(updated);
       notifyListeners();
     }
   }
 
   void deletePlace(String id) {
     _places.removeWhere((p) => p.id == id);
+    _store.remove(id);
     notifyListeners();
   }
 
@@ -44,6 +63,7 @@ class PlacesProvider extends ChangeNotifier {
   void replaceForTrip(String tripId, List<SavedPlace> places) {
     _places.removeWhere((p) => p.tripId == tripId);
     _places.addAll(places);
+    _store.replaceAll(_places);
     notifyListeners();
   }
 
@@ -127,7 +147,10 @@ class PlacesProvider extends ChangeNotifier {
     }
 
     _places.addAll(imported);
-    if (imported.isNotEmpty) notifyListeners();
+    if (imported.isNotEmpty) {
+      _store.putAll(imported);
+      notifyListeners();
+    }
 
     return GoogleMapsImportResult(imported: imported, duplicatesSkipped: duplicates, failed: failed);
   }
