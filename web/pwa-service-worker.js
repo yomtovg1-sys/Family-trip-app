@@ -9,7 +9,7 @@
 //
 // Bump CACHE_VERSION whenever a new build is deployed so old cached
 // assets from a previous release are dropped instead of lingering forever.
-const CACHE_VERSION = 'easytrip-v2';
+const CACHE_VERSION = 'easytrip-v4';
 
 // Everything the app needs to actually boot and render, offline, from a
 // cold start. This has to be precached explicitly rather than left to
@@ -47,6 +47,29 @@ const CORE_ASSETS = [
   'assets/fonts/MaterialIcons-Regular.otf',
   'assets/packages/cupertino_icons/assets/CupertinoIcons.ttf',
   'assets/assets/images/family_hero.jpg',
+  // Roboto (body text) and Noto Color Emoji (flags, trip icons) are
+  // bundled with the app instead of fetched from Google Fonts at runtime —
+  // precaching them here is what makes text and emoji still render with
+  // no network at all, not just the app shell around them.
+  'assets/assets/fonts/Roboto/Roboto-Thin.ttf',
+  'assets/assets/fonts/Roboto/Roboto-Light.ttf',
+  'assets/assets/fonts/Roboto/Roboto-Regular.ttf',
+  'assets/assets/fonts/Roboto/Roboto-Medium.ttf',
+  'assets/assets/fonts/Roboto/Roboto-Bold.ttf',
+  'assets/assets/fonts/Roboto/Roboto-Black.ttf',
+  'assets/assets/fonts/NotoColorEmoji.ttf',
+  // Mirrors of the specific Google Fonts "Noto Sans Symbols" files the web
+  // engine's automatic fallback mechanism reaches for (plain symbol glyphs
+  // like ★, not covered by Roboto or Noto Color Emoji) — see index.html's
+  // fontFallbackBaseUrl override, which points that mechanism here instead
+  // of fonts.gstatic.com.
+  'fallback_fonts/notosanssymbols/v43/rP2up3q65FkAtHfwd-eIS2brbDN6gxP34F9jRRCe4W3gfQ8gb_VFRkzrbQ.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-jrBWXPM4Q.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-ujgfE71.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-gTBWXPM4Q.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-vrgfE71.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-prgfE71.woff2',
+  'fallback_fonts/notosanssymbols2/v24/I_uyMoGduATTei9eI8daxVHDyfisHr71-pTgfA.woff2',
 ];
 
 self.addEventListener('install', (event) => {
