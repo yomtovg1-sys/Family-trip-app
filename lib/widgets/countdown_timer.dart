@@ -92,7 +92,6 @@ class _CountdownUnit extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
                 ),
               ),
             ),
@@ -101,11 +100,10 @@ class _CountdownUnit extends StatelessWidget {
         const SizedBox(height: 7),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.75),
+          style: const TextStyle(
+            color: Colors.white,
             fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.4,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],

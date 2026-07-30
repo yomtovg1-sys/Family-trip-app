@@ -36,7 +36,7 @@ class TripManager extends ChangeNotifier {
 
   static const _currentTripIdKey = 'currentTripId';
 
-  late String _currentTripId;
+  String? _currentTripId;
 
   TripManager({
     required this.tripRepository,
@@ -47,12 +47,21 @@ class TripManager extends ChangeNotifier {
   }) {
     final trips = tripRepository.getAll();
     final savedId = _appStateBox.get(_currentTripIdKey);
-    _currentTripId = (savedId != null && trips.any((t) => t.id == savedId)) ? savedId : trips.first.id;
+    _currentTripId = (savedId != null && trips.any((t) => t.id == savedId))
+        ? savedId
+        : (trips.isNotEmpty ? trips.first.id : null);
   }
 
   List<Trip> get trips => tripRepository.getAll();
 
-  Trip get currentTrip => tripRepository.byId(_currentTripId) ?? trips.first;
+  /// Whether any trip exists yet — false only on a fresh install before the
+  /// family creates their first trip.
+  bool get hasTrips => trips.isNotEmpty;
+
+  /// The active trip. Only valid to read once [hasTrips] is true — callers
+  /// (screens reachable once a trip exists) rely on that precondition
+  /// instead of each having to handle "no trip" themselves.
+  Trip get currentTrip => tripRepository.byId(_currentTripId ?? '') ?? trips.first;
 
   TripContext get currentContext => TripContext(trip: currentTrip);
 
@@ -70,7 +79,8 @@ class TripManager extends ChangeNotifier {
     required String flagEmoji,
     required DateTime startDate,
     required DateTime endDate,
-    String? photoAsset,
+    String? country,
+    Uint8List? photoBytes,
     String currency = 'USD',
     List<String> vaultDocumentIds = const [],
   }) {
@@ -82,7 +92,8 @@ class TripManager extends ChangeNotifier {
       endDate: endDate,
       heroEmoji: flagEmoji,
       flagEmoji: flagEmoji,
-      photoAsset: photoAsset,
+      country: country,
+      photoBytes: photoBytes,
       currency: currency,
     );
     tripRepository.add(trip);

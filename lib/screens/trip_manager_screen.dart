@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/document_category.dart';
@@ -14,9 +17,11 @@ import '../services/personal_vault.dart';
 import '../services/trip_copy_service.dart';
 import '../services/trip_manager.dart';
 import '../utils/currency.dart';
+import '../utils/destination_covers.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/destination_cover_image.dart';
 
 /// The Trip Manager: the visible face of [TripManager]. This is where a
 /// family creates a trip (optionally attaching Personal Vault documents and
@@ -421,19 +426,28 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _destinationController = TextEditingController();
-  final _flagController = TextEditingController(text: '🌍');
   DateTime _startDate = DateTime.now().add(const Duration(days: 30));
   DateTime _endDate = DateTime.now().add(const Duration(days: 37));
   String _currency = supportedCurrencies.first;
   final Set<String> _selectedVaultIds = {};
   String? _templateId;
+  String? _selectedCountry;
+  Uint8List? _customCoverBytes;
 
   @override
   void dispose() {
     _nameController.dispose();
     _destinationController.dispose();
-    _flagController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickCustomCover() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() => _customCoverBytes = bytes);
   }
 
   @override
@@ -442,6 +456,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     final vaultDocuments = context.watch<PersonalVault>().documents;
     final templates = context.watch<TripManager>().templates;
     final theme = Theme.of(context);
+    final sortedCountries = [...destinationCovers]..sort((a, b) => a.country.compareTo(b.country));
+    final autoCover = destinationCoverFor(_selectedCountry);
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Trip')),
@@ -450,6 +466,39 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
           children: [
+            Text('Cover photo', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (_customCoverBytes != null)
+                      Image.memory(_customCoverBytes!, fit: BoxFit.cover)
+                    else if (autoCover != null)
+                      DestinationCoverImage(cover: autoCover)
+                    else
+                      Container(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        alignment: Alignment.center,
+                        child: Text('🌍', style: const TextStyle(fontSize: 48)),
+                      ),
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: FilledButton.tonalIcon(
+                        onPressed: _pickCustomCover,
+                        icon: const Icon(Icons.photo_library_rounded, size: 18),
+                        label: Text(_customCoverBytes == null ? 'Choose photo' : 'Change photo'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Trip name'),
@@ -465,9 +514,18 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
-                    controller: _flagController,
-                    decoration: const InputDecoration(labelText: 'Flag emoji'),
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _selectedCountry,
+                    decoration: const InputDecoration(labelText: 'Country'),
+                    items: [
+                      for (final cover in sortedCountries)
+                        DropdownMenuItem(
+                          value: cover.country,
+                          child: Text('${cover.flagEmoji} ${cover.country}', overflow: TextOverflow.ellipsis),
+                        ),
+                      const DropdownMenuItem(value: 'Other', child: Text('🌍 Other')),
+                    ],
+                    onChanged: (value) => setState(() => _selectedCountry = value),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -575,9 +633,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     final trip = tripManager.createTrip(
       name: _nameController.text.trim(),
       destination: _destinationController.text.trim(),
-      flagEmoji: _flagController.text.trim().isEmpty ? '🌍' : _flagController.text.trim(),
+      flagEmoji: destinationCoverFor(_selectedCountry)?.flagEmoji ?? '🌍',
       startDate: _startDate,
       endDate: _endDate,
+      country: _selectedCountry,
+      photoBytes: _customCoverBytes,
       currency: _currency,
       vaultDocumentIds: _selectedVaultIds.toList(),
     );

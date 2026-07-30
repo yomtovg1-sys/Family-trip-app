@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/memory_photo.dart';
 import '../services/hive_json_store.dart';
-import '../utils/placeholder_bytes.dart';
 
 /// Photos saved to each trip's Memories page. Order is stored per-trip:
 /// seeded chronologically, then whatever the family reorders it to by drag
@@ -19,9 +18,7 @@ class MemoriesProvider extends ChangeNotifier {
       fromJson: MemoryPhoto.fromJson,
       idOf: (p) => p.id,
     );
-    final photos = store.isEmpty ? _seedPhotos() : store.getAll();
-    if (store.isEmpty) store.putAll(photos);
-    return MemoriesProvider._(store, photos);
+    return MemoriesProvider._(store, store.getAll());
   }
 
   List<MemoryPhoto> forTrip(String tripId) => _photos.where((p) => p.tripId == tripId).toList();
@@ -76,85 +73,5 @@ class MemoriesProvider extends ChangeNotifier {
     _photos.addAll(tripPhotos);
     _store.replaceAll(_photos);
     notifyListeners();
-  }
-
-  static List<MemoryPhoto> _seedPhotos() {
-    final now = DateTime.now();
-
-    // Seeded already in chronological (takenAt ascending) order per trip.
-    return [
-      MemoryPhoto(
-        id: 'ph1',
-        tripId: 'trip-tahoe',
-        bytes: placeholderImageBytes,
-        fileName: 'planning-the-route.png',
-        caption: 'Planning the route!',
-        takenAt: now.subtract(const Duration(days: 5)),
-      ),
-      MemoryPhoto(
-        id: 'ph2',
-        tripId: 'trip-tahoe',
-        bytes: placeholderImageBytes,
-        fileName: 'new-hiking-boots.png',
-        caption: 'New hiking boots arrived',
-        takenAt: now.subtract(const Duration(days: 3)),
-      ),
-      MemoryPhoto(
-        id: 'ph3',
-        tripId: 'trip-tahoe',
-        bytes: placeholderImageBytes,
-        fileName: 'family-hike.png',
-        caption: 'Family hike through the pines',
-        takenAt: now.subtract(const Duration(days: 1)),
-      ),
-      MemoryPhoto(
-        id: 'ph4',
-        tripId: 'trip-tahoe',
-        bytes: placeholderImageBytes,
-        fileName: 'snack-break.png',
-        caption: 'Snack break on the trail',
-        takenAt: now,
-      ),
-      MemoryPhoto(
-        id: 'ph6',
-        tripId: 'trip-japan',
-        bytes: placeholderImageBytes,
-        fileName: 'booked-the-ryokan.png',
-        caption: 'Booked the ryokan!',
-        takenAt: now.subtract(const Duration(days: 45)),
-      ),
-      MemoryPhoto(
-        id: 'ph5',
-        tripId: 'trip-japan',
-        bytes: placeholderImageBytes,
-        fileName: 'japanese-phrases.png',
-        caption: 'Learning basic Japanese phrases',
-        takenAt: now.subtract(const Duration(days: 20)),
-      ),
-      MemoryPhoto(
-        id: 'ph7',
-        tripId: 'trip-italy',
-        bytes: placeholderImageBytes,
-        fileName: 'colosseum-sunset.png',
-        caption: 'Colosseum at sunset',
-        takenAt: now.subtract(const Duration(days: 200)),
-      ),
-      MemoryPhoto(
-        id: 'ph8',
-        tripId: 'trip-italy',
-        bytes: placeholderImageBytes,
-        fileName: 'best-gelato.png',
-        caption: 'Best gelato in Florence',
-        takenAt: now.subtract(const Duration(days: 197)),
-      ),
-      MemoryPhoto(
-        id: 'ph9',
-        tripId: 'trip-italy',
-        bytes: placeholderImageBytes,
-        fileName: 'venice-canals.png',
-        caption: 'Venice canals by gondola',
-        takenAt: now.subtract(const Duration(days: 193)),
-      ),
-    ];
   }
 }

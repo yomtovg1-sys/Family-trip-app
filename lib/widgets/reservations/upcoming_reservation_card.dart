@@ -79,7 +79,6 @@ class UpcomingReservationCard extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1.6,
                     ),
                   ),
                   const Spacer(),

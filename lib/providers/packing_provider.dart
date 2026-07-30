@@ -17,39 +17,8 @@ class PackingProvider extends ChangeNotifier {
       fromJson: PackingItem.fromJson,
       idOf: (i) => i.id,
     );
-    final items = store.isEmpty ? _seedItems() : store.getAll();
-    if (store.isEmpty) store.putAll(items);
-    return PackingProvider._(store, items);
+    return PackingProvider._(store, store.getAll());
   }
-
-  static List<PackingItem> _seedItems() => [
-        PackingItem(id: 'p1', tripId: 'trip-tahoe', name: 'Swimsuits', category: 'Clothing', assignedTo: 'Everyone'),
-        PackingItem(id: 'p2', tripId: 'trip-tahoe', name: 'Hiking boots', category: 'Clothing', assignedTo: 'Dad'),
-        PackingItem(id: 'p3', tripId: 'trip-tahoe', name: 'Sunscreen', category: 'Toiletries', assignedTo: 'Mom'),
-        PackingItem(
-          id: 'p4',
-          tripId: 'trip-tahoe',
-          name: 'Kids tablets & chargers',
-          category: 'Electronics',
-          assignedTo: 'Kids',
-        ),
-        PackingItem(id: 'p5', tripId: 'trip-tahoe', name: 'Camping chairs', category: 'Gear', assignedTo: 'Dad'),
-        PackingItem(id: 'p6', tripId: 'trip-tahoe', name: 'First aid kit', category: 'Essentials', assignedTo: 'Mom'),
-        PackingItem(
-          id: 'p7',
-          tripId: 'trip-tahoe',
-          name: 'Passports / IDs',
-          category: 'Essentials',
-          assignedTo: 'Everyone',
-        ),
-        PackingItem(
-          id: 'p8',
-          tripId: 'trip-tahoe',
-          name: 'Snacks for the road',
-          category: 'Food',
-          assignedTo: 'Kids',
-        ),
-      ];
 
   /// Every packing item across every trip — used for whole-app backup/AI
   /// grounding fallbacks, not for display (use [forTrip] for that).

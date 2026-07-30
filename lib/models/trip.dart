@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 class Trip {
   final String id;
   final String name;
@@ -6,7 +9,8 @@ class Trip {
   final DateTime endDate;
   final String heroEmoji;
   final String flagEmoji;
-  final String? photoAsset;
+  final String? country;
+  final Uint8List? photoBytes;
   final String currency;
 
   const Trip({
@@ -17,7 +21,8 @@ class Trip {
     required this.endDate,
     this.heroEmoji = '✈️',
     this.flagEmoji = '🌍',
-    this.photoAsset,
+    this.country,
+    this.photoBytes,
     this.currency = 'USD',
   });
 
@@ -37,7 +42,8 @@ class Trip {
         'endDate': endDate.toIso8601String(),
         'heroEmoji': heroEmoji,
         'flagEmoji': flagEmoji,
-        'photoAsset': photoAsset,
+        'country': country,
+        'photoBytesBase64': photoBytes == null ? null : base64Encode(photoBytes!),
         'currency': currency,
       };
 
@@ -50,7 +56,8 @@ class Trip {
       endDate: DateTime.parse(json['endDate'] as String),
       heroEmoji: json['heroEmoji'] as String? ?? '✈️',
       flagEmoji: json['flagEmoji'] as String? ?? '🌍',
-      photoAsset: json['photoAsset'] as String?,
+      country: json['country'] as String?,
+      photoBytes: json['photoBytesBase64'] == null ? null : base64Decode(json['photoBytesBase64'] as String),
       currency: json['currency'] as String? ?? 'USD',
     );
   }

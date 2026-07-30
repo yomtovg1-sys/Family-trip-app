@@ -15,37 +15,8 @@ class TasksProvider extends ChangeNotifier {
       fromJson: FamilyTask.fromJson,
       idOf: (t) => t.id,
     );
-    final tasks = store.isEmpty ? _seedTasks() : store.getAll();
-    if (store.isEmpty) store.putAll(tasks);
-    return TasksProvider._(store, tasks);
+    return TasksProvider._(store, store.getAll());
   }
-
-  static List<FamilyTask> _seedTasks() => [
-        FamilyTask(
-          id: 't1',
-          title: 'Book kayak rental',
-          assignedTo: 'Mom',
-          dueDate: DateTime.now().add(const Duration(days: 5)),
-        ),
-        FamilyTask(
-          id: 't2',
-          title: 'Renew car insurance travel add-on',
-          assignedTo: 'Dad',
-          dueDate: DateTime.now().add(const Duration(days: 7)),
-        ),
-        FamilyTask(
-          id: 't3',
-          title: 'Pack the board games',
-          assignedTo: 'Kids',
-          dueDate: DateTime.now().add(const Duration(days: 20)),
-        ),
-        FamilyTask(
-          id: 't4',
-          title: 'Ask neighbor to water plants',
-          assignedTo: 'Mom',
-          dueDate: DateTime.now().add(const Duration(days: 19)),
-        ),
-      ];
 
   List<FamilyTask> get tasks => List.unmodifiable(_tasks);
 
