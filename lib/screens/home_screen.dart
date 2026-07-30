@@ -520,12 +520,16 @@ class _GlassPanel extends StatelessWidget {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Icon(Icons.location_on, color: Colors.white.withValues(alpha: 0.75), size: 15),
+                  const Icon(Icons.location_on, color: Colors.white, size: 15),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       '${trip.destination} · ${dateFormat.format(trip.startDate)} - ${dateFormat.format(trip.endDate)}',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12.5),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
