@@ -21,7 +21,7 @@ class _FakePathProviderPlatform extends PathProviderPlatform with MockPlatformIn
 void main() {
   PathProviderPlatform.instance = _FakePathProviderPlatform();
 
-  testWidgets('Home dashboard shows countdown, journey and quick access',
+  testWidgets('Fresh install shows the empty state, not demo data',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1200, 6000);
     tester.view.devicePixelRatio = 1.0;
@@ -29,6 +29,29 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final dependencies = await AppDependencies.bootstrap();
+    await tester.pumpWidget(FamilyTripApp(dependencies: dependencies));
+    await tester.pump();
+
+    expect(find.text('Create Your First Trip'), findsOneWidget);
+    expect(find.textContaining('days to go'), findsNothing);
+  });
+
+  testWidgets('Home dashboard shows countdown, journey and quick access once a trip exists',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 6000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final dependencies = await AppDependencies.bootstrap();
+    dependencies.tripManager.createTrip(
+      name: 'Family Trip',
+      destination: 'Somewhere',
+      flagEmoji: '🌍',
+      startDate: DateTime.now().add(const Duration(days: 30)),
+      endDate: DateTime.now().add(const Duration(days: 37)),
+    );
+
     await tester.pumpWidget(FamilyTripApp(dependencies: dependencies));
     await tester.pump();
 

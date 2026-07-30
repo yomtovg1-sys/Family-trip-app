@@ -10,6 +10,7 @@ import '../providers/places_provider.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
 import '../screens/ai_assistant_screen.dart';
+import '../services/trip_manager.dart';
 import '../widgets/ai_assistant_card.dart';
 import '../widgets/alerts_banner.dart';
 import '../widgets/app_drawer.dart';
@@ -24,12 +25,18 @@ import '../widgets/trip_selector.dart';
 import '../widgets/weather_card.dart';
 import '../models/expense_entry.dart';
 import '../utils/currency.dart';
+import '../utils/destination_covers.dart';
+import '../widgets/destination_cover_image.dart';
+import 'trip_manager_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final hasTrips = context.watch<TripManager>().hasTrips;
+    if (!hasTrips) return const _WelcomeScreen();
+
     final dashboard = context.watch<TripProvider>().current;
     final reservationsProvider = context.watch<ReservationsProvider>();
     final tripReservations = reservationsProvider.forTrip(dashboard.trip.id);
@@ -400,8 +407,10 @@ class _CountdownHeroCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (trip.photoAsset != null)
-              Image.asset(trip.photoAsset!, fit: BoxFit.cover)
+            if (trip.photoBytes != null)
+              Image.memory(trip.photoBytes!, fit: BoxFit.cover)
+            else if (destinationCoverFor(trip.country) != null)
+              DestinationCoverImage(cover: destinationCoverFor(trip.country)!)
             else
               Container(
                 decoration: BoxDecoration(
@@ -488,7 +497,6 @@ class _GlassPanel extends StatelessWidget {
                         color: _CountdownHeroCard._gold,
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 2.1,
                       ),
                     ),
                   ),
@@ -531,9 +539,9 @@ class _GlassPanel extends StatelessWidget {
   }
 
   String _eyebrow() {
-    if (trip.hasEnded) return 'ADVENTURE COMPLETE';
-    if (trip.hasStarted) return 'LIVING THE ADVENTURE';
-    return 'FAMILY ADVENTURE AWAITS';
+    if (trip.hasEnded) return 'Adventure complete';
+    if (trip.hasStarted) return 'Living the adventure';
+    return 'Family adventure awaits';
   }
 
   Widget _buildHeadline(BuildContext context) {
@@ -544,7 +552,6 @@ class _GlassPanel extends StatelessWidget {
           color: Colors.white,
           fontSize: 30,
           fontWeight: FontWeight.w800,
-          letterSpacing: -0.5,
         ),
       );
     }
@@ -605,11 +612,10 @@ class _BigStat extends StatelessWidget {
         Text(
           number,
           style: const TextStyle(
-            color: _CountdownHeroCard._gold,
+            color: Colors.white,
             fontSize: 56,
             fontWeight: FontWeight.w900,
             height: 1,
-            letterSpacing: -1.5,
           ),
         ),
         const SizedBox(width: 10),
@@ -620,7 +626,6 @@ class _BigStat extends StatelessWidget {
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              letterSpacing: -0.2,
             ),
           ),
         ),
@@ -707,6 +712,54 @@ class _QuickAccessCardState extends State<_QuickAccessCard> {
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown instead of the dashboard on a fresh install, before any trip
+/// exists. There's nowhere else to navigate yet — creating the first trip
+/// is the only next step — so this replaces the whole screen rather than
+/// layering onto the usual Scaffold/drawer.
+class _WelcomeScreen extends StatelessWidget {
+  const _WelcomeScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('🌍', style: TextStyle(fontSize: 72)),
+                const SizedBox(height: 20),
+                Text(
+                  'Plan your next family adventure',
+                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Create your first trip to start tracking reservations, places, packing, and memories all in one spot.',
+                  style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const CreateTripScreen()),
+                  ),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Create Your First Trip'),
                 ),
               ],
             ),

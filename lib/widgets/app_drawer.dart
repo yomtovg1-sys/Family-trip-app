@@ -19,10 +19,10 @@ class AppDrawer extends StatelessWidget {
           children: [
             DrawerHeader(
               margin: EdgeInsets.zero,
-              decoration: trip.photoAsset != null
+              decoration: trip.photoBytes != null
                   ? BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage(trip.photoAsset!),
+                        image: MemoryImage(trip.photoBytes!),
                         fit: BoxFit.cover,
                         colorFilter: const ColorFilter.mode(Colors.black45, BlendMode.darken),
                       ),

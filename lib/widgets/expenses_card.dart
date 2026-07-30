@@ -131,7 +131,6 @@ class _StatColumn extends StatelessWidget {
           label.toUpperCase(),
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 1,
             fontWeight: FontWeight.w700,
           ),
         ),

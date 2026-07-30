@@ -56,7 +56,8 @@ class ConflictResolver {
       endDate: newer.trip.endDate,
       heroEmoji: newer.trip.heroEmoji,
       flagEmoji: newer.trip.flagEmoji,
-      photoAsset: newer.trip.photoAsset ?? older.trip.photoAsset,
+      country: newer.trip.country ?? older.trip.country,
+      photoBytes: newer.trip.photoBytes ?? older.trip.photoBytes,
       currency: newer.trip.currency,
     );
 

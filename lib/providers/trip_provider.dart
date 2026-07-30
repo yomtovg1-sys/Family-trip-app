@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:hive_ce_flutter/hive_ce_flutter.dart';
-import '../models/document_category.dart';
 import '../models/expense_entry.dart';
 import '../models/journey_stop.dart';
 import '../models/travel_alert.dart';
@@ -11,7 +10,6 @@ import '../models/trip.dart';
 import '../models/trip_snapshot.dart';
 import '../models/weather_snapshot.dart';
 import '../services/trip_manager.dart';
-import '../utils/placeholder_bytes.dart';
 
 bool _isSameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
@@ -195,22 +193,13 @@ class TripProvider extends ChangeNotifier {
   }
 
   /// Loads dashboard extras (journey stops, weather, expenses, trip-level
-  /// documents, passport expiry) from Hive, keyed by trip id. Seeds the
-  /// three starter trips' extras only on a genuine first launch.
+  /// documents, passport expiry) from Hive, keyed by trip id.
   static Future<TripProvider> open({required TripManager tripManager}) async {
     final box = await Hive.openBox<String>('dashboard_extras');
-    Map<String, _DashboardExtras> extras;
-    if (box.isEmpty) {
-      extras = _seedExtras();
-      for (final entry in extras.entries) {
-        box.put(entry.key, jsonEncode(entry.value.toJson()));
-      }
-    } else {
-      extras = {
-        for (final key in box.keys)
-          key as String: _DashboardExtras.fromJson(jsonDecode(box.get(key)!) as Map<String, dynamic>),
-      };
-    }
+    final extras = {
+      for (final key in box.keys)
+        key as String: _DashboardExtras.fromJson(jsonDecode(box.get(key)!) as Map<String, dynamic>),
+    };
     return TripProvider._(tripManager, box, extras);
   }
 
@@ -326,266 +315,5 @@ class TripProvider extends ChangeNotifier {
   void dispose() {
     tripManager.removeListener(_onTripManagerChanged);
     super.dispose();
-  }
-
-  static Map<String, _DashboardExtras> _seedExtras() {
-    final now = DateTime.now();
-
-    final tahoeStart = now.add(const Duration(days: 21));
-    final tahoeEnd = now.add(const Duration(days: 28));
-    final japanStart = now.add(const Duration(days: 410));
-    final japanEnd = now.add(const Duration(days: 424));
-    final italyStart = now.subtract(const Duration(days: 201));
-    final italyEnd = now.subtract(const Duration(days: 191));
-
-    return {
-      'trip-tahoe': _DashboardExtras(
-        journeyStops: [
-          JourneyStop(
-            location: 'South Lake Tahoe',
-            start: tahoeStart,
-            end: tahoeStart.add(const Duration(days: 4)),
-          ),
-          JourneyStop(
-            location: 'Truckee',
-            start: tahoeStart.add(const Duration(days: 4)),
-            end: tahoeEnd,
-          ),
-        ],
-        weather: const WeatherSnapshot(
-          tempCelsius: 24,
-          condition: WeatherCondition.sunny,
-          rainChancePercent: 10,
-          aiTip: 'Great day for outdoor activities. ☀️',
-        ),
-        expenses: [
-          ExpenseEntry(
-            id: 'e1',
-            merchant: 'Delta Airlines',
-            amount: 1450,
-            currency: 'USD',
-            category: ExpenseCategory.flights,
-            date: now.subtract(const Duration(days: 10)),
-          ),
-          ExpenseEntry(
-            id: 'e2',
-            merchant: 'Cabin rental (7 nights)',
-            amount: 1200,
-            currency: 'USD',
-            category: ExpenseCategory.hotel,
-            date: now.subtract(const Duration(days: 8)),
-          ),
-          ExpenseEntry(
-            id: 'e3',
-            merchant: 'Enterprise Rent-A-Car',
-            amount: 380,
-            currency: 'USD',
-            category: ExpenseCategory.transportation,
-            date: now.subtract(const Duration(days: 5)),
-          ),
-          ExpenseEntry(
-            id: 'e4',
-            merchant: 'Grocery run',
-            amount: 140,
-            currency: 'USD',
-            category: ExpenseCategory.grocery,
-            date: now.subtract(const Duration(days: 3)),
-          ),
-          ExpenseEntry(
-            id: 'e5',
-            merchant: 'Kayak rental',
-            amount: 90,
-            currency: 'USD',
-            category: ExpenseCategory.attractions,
-            date: now.subtract(const Duration(days: 2)),
-          ),
-          ExpenseEntry(
-            id: 'e6',
-            merchant: 'Hiking permits',
-            amount: 25,
-            currency: 'USD',
-            category: ExpenseCategory.attractions,
-            date: now,
-          ),
-          ExpenseEntry(
-            id: 'e7',
-            merchant: 'Family day packs',
-            amount: 60,
-            currency: 'USD',
-            category: ExpenseCategory.shopping,
-            date: now,
-          ),
-        ],
-        documents: [
-          TravelDocument(
-            id: 'doc1',
-            fileName: 'Family Passports.pdf',
-            type: AttachmentType.pdf,
-            bytes: placeholderDocumentBytes,
-            uploadedAt: now.subtract(const Duration(days: 12)),
-            category: DocumentCategory.passport,
-          ),
-          TravelDocument(
-            id: 'doc2',
-            fileName: 'Travel Insurance Policy.pdf',
-            type: AttachmentType.pdf,
-            bytes: placeholderDocumentBytes,
-            uploadedAt: now.subtract(const Duration(days: 9)),
-            category: DocumentCategory.insurance,
-          ),
-          TravelDocument(
-            id: 'doc3',
-            fileName: 'Emergency Contacts.png',
-            type: AttachmentType.image,
-            bytes: placeholderImageBytes,
-            uploadedAt: now.subtract(const Duration(days: 6)),
-            category: DocumentCategory.emergencyContact,
-          ),
-        ],
-      ),
-      'trip-japan': _DashboardExtras(
-        journeyStops: [
-          JourneyStop(
-            location: 'Tokyo',
-            start: japanStart,
-            end: japanStart.add(const Duration(days: 3)),
-          ),
-          JourneyStop(
-            location: 'Hakone',
-            start: japanStart.add(const Duration(days: 3)),
-            end: japanStart.add(const Duration(days: 5)),
-          ),
-          JourneyStop(
-            location: 'Kyoto',
-            start: japanStart.add(const Duration(days: 5)),
-            end: japanStart.add(const Duration(days: 9)),
-          ),
-          JourneyStop(
-            location: 'Osaka',
-            start: japanStart.add(const Duration(days: 9)),
-            end: japanEnd,
-          ),
-        ],
-        weather: const WeatherSnapshot(
-          tempCelsius: 26,
-          condition: WeatherCondition.partlyCloudy,
-          rainChancePercent: 40,
-          aiTip: 'Pack a light rain jacket just in case. 🌦️',
-        ),
-        expenses: [
-          ExpenseEntry(
-            id: 'j1',
-            merchant: 'International flights (deposit)',
-            amount: 600,
-            currency: 'USD',
-            category: ExpenseCategory.flights,
-            date: now.subtract(const Duration(days: 60)),
-          ),
-          ExpenseEntry(
-            id: 'j2',
-            merchant: 'Ryokan booking',
-            amount: 450,
-            currency: 'USD',
-            category: ExpenseCategory.hotel,
-            date: now.subtract(const Duration(days: 45)),
-          ),
-          ExpenseEntry(
-            id: 'j3',
-            merchant: 'JR Rail Pass',
-            amount: 380,
-            currency: 'USD',
-            category: ExpenseCategory.transportation,
-            date: now.subtract(const Duration(days: 10)),
-          ),
-          ExpenseEntry(
-            id: 'j4',
-            merchant: 'Travel guidebook & gear',
-            amount: 70,
-            currency: 'USD',
-            category: ExpenseCategory.shopping,
-            date: now.subtract(const Duration(days: 5)),
-          ),
-          ExpenseEntry(
-            id: 'j5',
-            merchant: 'Universal Studios tickets',
-            amount: 210,
-            currency: 'USD',
-            category: ExpenseCategory.attractions,
-            date: now,
-          ),
-        ],
-        passportExpiryDate: now.add(const Duration(days: 90)),
-      ),
-      'trip-italy': _DashboardExtras(
-        journeyStops: [
-          JourneyStop(
-            location: 'Rome',
-            start: italyStart,
-            end: italyStart.add(const Duration(days: 3)),
-          ),
-          JourneyStop(
-            location: 'Florence',
-            start: italyStart.add(const Duration(days: 3)),
-            end: italyStart.add(const Duration(days: 6)),
-          ),
-          JourneyStop(
-            location: 'Venice',
-            start: italyStart.add(const Duration(days: 6)),
-            end: italyEnd,
-          ),
-        ],
-        weather: null,
-        expenses: [
-          ExpenseEntry(
-            id: 'i1',
-            merchant: 'Round-trip flights',
-            amount: 1100,
-            currency: 'EUR',
-            category: ExpenseCategory.flights,
-            date: italyStart,
-          ),
-          ExpenseEntry(
-            id: 'i2',
-            merchant: 'Hotels (3 cities)',
-            amount: 1400,
-            currency: 'EUR',
-            category: ExpenseCategory.hotel,
-            date: italyStart.add(const Duration(days: 1)),
-          ),
-          ExpenseEntry(
-            id: 'i3',
-            merchant: 'Meals & trattorias',
-            amount: 680,
-            currency: 'EUR',
-            category: ExpenseCategory.food,
-            date: italyStart.add(const Duration(days: 2)),
-          ),
-          ExpenseEntry(
-            id: 'i4',
-            merchant: 'Colosseum & Uffizi tickets',
-            amount: 150,
-            currency: 'EUR',
-            category: ExpenseCategory.attractions,
-            date: italyStart.add(const Duration(days: 3)),
-          ),
-          ExpenseEntry(
-            id: 'i5',
-            merchant: 'Souvenirs',
-            amount: 220,
-            currency: 'EUR',
-            category: ExpenseCategory.shopping,
-            date: italyStart.add(const Duration(days: 7)),
-          ),
-          ExpenseEntry(
-            id: 'i6',
-            merchant: 'Gondola ride',
-            amount: 90,
-            currency: 'EUR',
-            category: ExpenseCategory.attractions,
-            date: italyStart.add(const Duration(days: 8)),
-          ),
-        ],
-      ),
-    };
   }
 }

@@ -4,11 +4,6 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const seedColor = Color(0xFF2E7D6B);
 
-  // No letterSpacing overrides here: Roboto's own metrics already read as
-  // natural, native-feeling type at every weight below, so tracking is left
-  // at Flutter's default (0) unless a specific piece of UI has a real
-  // reason to deviate (e.g. an all-caps eyebrow label, which keeps its own
-  // explicit letterSpacing where it's used).
   static const _textTheme = TextTheme(
     titleLarge: TextStyle(fontWeight: FontWeight.w800),
     titleMedium: TextStyle(fontWeight: FontWeight.w700),
@@ -54,8 +49,15 @@ class AppTheme {
     // merged _textTheme onto its own Material defaults) rather than to
     // _textTheme directly, so every text style gets the fallback — not
     // just the handful of styles _textTheme happens to override.
+    // letterSpacingFactor: 0 zeroes out Material 3's baked-in per-style
+    // tracking (e.g. titleMedium: 0.15, labelSmall: 0.5) so text reads with
+    // natural, native-feeling spacing everywhere, not just where _textTheme
+    // explicitly sets a style.
     return base.copyWith(
-      textTheme: base.textTheme.apply(fontFamilyFallback: _emojiFallbackFamilies),
+      textTheme: base.textTheme.apply(
+        fontFamilyFallback: _emojiFallbackFamilies,
+        letterSpacingFactor: 0,
+      ),
     );
   }
 
@@ -75,7 +77,10 @@ class AppTheme {
       pageTransitionsTheme: _pageTransitionsTheme,
     );
     return base.copyWith(
-      textTheme: base.textTheme.apply(fontFamilyFallback: _emojiFallbackFamilies),
+      textTheme: base.textTheme.apply(
+        fontFamilyFallback: _emojiFallbackFamilies,
+        letterSpacingFactor: 0,
+      ),
     );
   }
 }
