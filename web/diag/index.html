@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EasyTrip font diagnostic</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; background: #FAF8F5; color: #1a1a1a; }
+  h2 { margin-top: 28px; margin-bottom: 4px; font-size: 14px; color: #666; text-transform: uppercase; }
+  .sample {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: normal !important;
+    word-spacing: normal !important;
+    text-align: left !important;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    margin-bottom: 4px;
+  }
+  .roboto { font-family: 'RobotoDiag', sans-serif; }
+  .system { font-family: -apple-system, system-ui, sans-serif; }
+  pre { background: #eee; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  @font-face {
+    font-family: 'RobotoDiag';
+    src: url('../assets/assets/fonts/Roboto/Roboto-Regular.ttf') format('truetype');
+    font-weight: 400;
+  }
+  @font-face {
+    font-family: 'RobotoDiag';
+    src: url('../assets/assets/fonts/Roboto/Roboto-Black.ttf') format('truetype');
+    font-weight: 900;
+  }
+</style>
+</head>
+<body>
+  <h1>Font/device diagnostic</h1>
+  <p>This page has no Flutter and no CanvasKit — it's plain HTML/CSS text using the exact same bundled Roboto font file the app uses. If "2026" and the words below look normal here, the font file and your device are fine, and the bug is specific to Flutter's CanvasKit rendering. If this page ALSO shows gaps, the problem is somewhere else entirely (the font file itself, or something at the browser/OS level).</p>
+
+  <h2>Bundled Roboto (regular, this app's actual font file)</h2>
+  <div class="sample roboto" style="font-weight:400;">2026</div>
+  <div class="sample roboto" style="font-weight:400;">Family adventure awaits</div>
+  <div class="sample roboto" style="font-weight:800;">Trip Manager</div>
+  <div class="sample roboto" style="font-weight:800;">09</div>
+
+  <h2>System font (for comparison)</h2>
+  <div class="sample system">2026</div>
+  <div class="sample system">Family adventure awaits</div>
+
+  <h2>Device / browser values</h2>
+  <pre id="out">loading…</pre>
+
+  <script>
+    function report() {
+      const lines = [];
+      lines.push('userAgent: ' + navigator.userAgent);
+      lines.push('devicePixelRatio: ' + window.devicePixelRatio);
+      lines.push('visualViewport.scale: ' + (window.visualViewport ? window.visualViewport.scale : 'n/a'));
+      lines.push('visualViewport.width: ' + (window.visualViewport ? window.visualViewport.width : 'n/a'));
+      lines.push('innerWidth/innerHeight: ' + window.innerWidth + ' x ' + window.innerHeight);
+      lines.push('screen.width/height: ' + screen.width + ' x ' + screen.height);
+      lines.push('documentElement clientWidth: ' + document.documentElement.clientWidth);
+      lines.push('standalone (installed PWA): ' + (window.navigator.standalone === undefined ? 'n/a' : window.navigator.standalone));
+      lines.push('document.fonts.size: ' + (document.fonts ? document.fonts.size : 'n/a'));
+      const statuses = [];
+      if (document.fonts) {
+        document.fonts.forEach(f => statuses.push(f.family + ' ' + f.weight + ': ' + f.status));
+      }
+      lines.push('font statuses:\n  ' + statuses.join('\n  '));
+      document.getElementById('out').textContent = lines.join('\n');
+    }
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(report);
+    }
+    report();
+    setTimeout(report, 1500);
+  </script>
+</body>
+</html>
