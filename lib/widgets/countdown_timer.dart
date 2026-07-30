@@ -105,7 +105,6 @@ class _CountdownUnit extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.75),
             fontSize: 11.5,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.4,
           ),
         ),
       ],

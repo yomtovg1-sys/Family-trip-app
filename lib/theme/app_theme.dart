@@ -4,12 +4,17 @@ import 'package:flutter/material.dart';
 class AppTheme {
   static const seedColor = Color(0xFF2E7D6B);
 
+  // No letterSpacing overrides here: Roboto's own metrics already read as
+  // natural, native-feeling type at every weight below, so tracking is left
+  // at Flutter's default (0) unless a specific piece of UI has a real
+  // reason to deviate (e.g. an all-caps eyebrow label, which keeps its own
+  // explicit letterSpacing where it's used).
   static const _textTheme = TextTheme(
-    titleLarge: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3),
-    titleMedium: TextStyle(fontWeight: FontWeight.w700, letterSpacing: -0.2),
+    titleLarge: TextStyle(fontWeight: FontWeight.w800),
+    titleMedium: TextStyle(fontWeight: FontWeight.w700),
     titleSmall: TextStyle(fontWeight: FontWeight.w600),
-    bodyMedium: TextStyle(letterSpacing: 0.1, height: 1.4),
-    bodySmall: TextStyle(letterSpacing: 0.1, height: 1.35),
+    bodyMedium: TextStyle(height: 1.4),
+    bodySmall: TextStyle(height: 1.35),
   );
 
   /// Bundled font that covers glyphs Roboto doesn't — flag emoji and trip

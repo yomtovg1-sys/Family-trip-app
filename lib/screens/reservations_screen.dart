@@ -140,7 +140,6 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   DateFormat('d MMM').format(date),
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ),
