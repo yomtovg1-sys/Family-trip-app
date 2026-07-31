@@ -17,10 +17,11 @@ import '../services/personal_vault.dart';
 import '../services/trip_copy_service.dart';
 import '../services/trip_manager.dart';
 import '../utils/currency.dart';
-import '../utils/destination_covers.dart';
+import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/country_picker_sheet.dart';
 import '../widgets/destination_cover_image.dart';
 
 /// The Trip Manager: the visible face of [TripManager]. This is where a
@@ -130,6 +131,7 @@ class _TripCard extends StatelessWidget {
                     icon: const Icon(Icons.more_vert_rounded),
                     onSelected: (value) => _handleMenu(context, value),
                     itemBuilder: (context) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Edit Trip')),
                       PopupMenuItem(value: 'vault', child: Text('Attached Vault Items')),
                       PopupMenuItem(value: 'copy', child: Text('Copy/Move Data…')),
                       PopupMenuItem(value: 'template', child: Text('Apply Template')),
@@ -162,6 +164,10 @@ class _TripCard extends StatelessWidget {
 
   void _handleMenu(BuildContext context, String value) {
     switch (value) {
+      case 'edit':
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => EditTripScreen(trip: trip)),
+        );
       case 'vault':
         showModalBottomSheet(
           context: context,
@@ -411,10 +417,12 @@ class _TemplateSheet extends StatelessWidget {
   }
 }
 
-/// A richer trip-creation flow than the quick dialog on Home: lets the
-/// family attach Personal Vault documents (so a new "Japan 2027" trip can
-/// start with passports already linked) and optionally seed the trip from
-/// a [TripTemplate].
+/// The simplest possible way to start a trip: choose a country, choose
+/// travel dates, done. Everything else a trip needs — name, flag, currency,
+/// timezone, and a landmark-matched cover — is filled in automatically from
+/// the country, so there's no photo to pick and no name to type. Personal
+/// Vault attachments and starting from a [TripTemplate] stay available as
+/// optional extras; only the country and dates are required.
 class CreateTripScreen extends StatefulWidget {
   const CreateTripScreen({super.key});
 
@@ -423,31 +431,15 @@ class CreateTripScreen extends StatefulWidget {
 }
 
 class _CreateTripScreenState extends State<CreateTripScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _destinationController = TextEditingController();
   DateTime _startDate = DateTime.now().add(const Duration(days: 30));
   DateTime _endDate = DateTime.now().add(const Duration(days: 37));
-  String _currency = supportedCurrencies.first;
   final Set<String> _selectedVaultIds = {};
   String? _templateId;
-  String? _selectedCountry;
-  Uint8List? _customCoverBytes;
+  Country? _selectedCountry;
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _destinationController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickCustomCover() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(source: ImageSource.gallery);
-    if (file == null) return;
-    final bytes = await file.readAsBytes();
-    if (!mounted) return;
-    setState(() => _customCoverBytes = bytes);
+  Future<void> _pickCountry() async {
+    final picked = await showCountryPicker(context, current: _selectedCountry);
+    if (picked != null) setState(() => _selectedCountry = picked);
   }
 
   @override
@@ -456,189 +448,154 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     final vaultDocuments = context.watch<PersonalVault>().documents;
     final templates = context.watch<TripManager>().templates;
     final theme = Theme.of(context);
-    final sortedCountries = [...destinationCovers]..sort((a, b) => a.country.compareTo(b.country));
-    final autoCover = destinationCoverFor(_selectedCountry);
+    final country = _selectedCountry;
 
     return Scaffold(
       appBar: AppBar(title: const Text('New Trip')),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-          children: [
-            Text('Cover photo', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (_customCoverBytes != null)
-                      Image.memory(_customCoverBytes!, fit: BoxFit.cover)
-                    else if (autoCover != null)
-                      DestinationCoverImage(cover: autoCover)
-                    else
-                      Container(
-                        color: theme.colorScheme.surfaceContainerHighest,
-                        alignment: Alignment.center,
-                        child: Text('🌍', style: const TextStyle(fontSize: 48)),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: country == null
+                  ? Container(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('🌍', style: TextStyle(fontSize: 40)),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Pick a country to see your cover',
+                            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ],
                       ),
-                    Positioned(
-                      right: 8,
-                      bottom: 8,
-                      child: FilledButton.tonalIcon(
-                        onPressed: _pickCustomCover,
-                        icon: const Icon(Icons.photo_library_rounded, size: 18),
-                        label: Text(_customCoverBytes == null ? 'Choose photo' : 'Change photo'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    )
+                  : DestinationCoverImage(cover: country),
             ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Trip name'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _destinationController,
-              decoration: const InputDecoration(labelText: 'Destination'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: _selectedCountry,
-                    decoration: const InputDecoration(labelText: 'Country'),
-                    items: [
-                      for (final cover in sortedCountries)
-                        DropdownMenuItem(
-                          value: cover.country,
-                          child: Text('${cover.flagEmoji} ${cover.country}', overflow: TextOverflow.ellipsis),
-                        ),
-                      const DropdownMenuItem(value: 'Other', child: Text('🌍 Other')),
-                    ],
-                    onChanged: (value) => setState(() => _selectedCountry = value),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: _currency,
-                    decoration: const InputDecoration(labelText: 'Currency'),
-                    items: [
-                      for (final code in supportedCurrencies) DropdownMenuItem(value: code, child: Text(code)),
-                    ],
-                    onChanged: (value) => setState(() => _currency = value ?? _currency),
-                  ),
-                ),
-              ],
-            ),
+          ),
+          const SizedBox(height: 20),
+          Text('Country', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          _CountrySelectorTile(country: country, onTap: _pickCountry),
+          if (country != null) ...[
             const SizedBox(height: 8),
-            _DatePickerRow(
-              label: 'Start',
-              date: _startDate,
-              dateFormat: dateFormat,
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _startDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-                );
-                if (picked != null) {
-                  setState(() {
-                    _startDate = picked;
-                    if (_endDate.isBefore(_startDate)) {
-                      _endDate = _startDate.add(const Duration(days: 7));
-                    }
-                  });
-                }
-              },
-            ),
-            _DatePickerRow(
-              label: 'End',
-              date: _endDate,
-              dateFormat: dateFormat,
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _endDate,
-                  firstDate: _startDate,
-                  lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-                );
-                if (picked != null) setState(() => _endDate = picked);
-              },
-            ),
-            const SizedBox(height: 24),
-            Text('Attach from Personal Vault', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 4),
             Text(
-              'These stay referenced, never duplicated.',
+              '${country.currency} · ${_shortTimezone(country.timezone)}',
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
-            const SizedBox(height: 8),
-            if (vaultDocuments.isEmpty)
-              const Text('Your Personal Vault is empty.')
-            else
-              for (final doc in vaultDocuments)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _selectedVaultIds.contains(doc.id),
-                  title: Text(doc.displayName),
-                  subtitle: Text(doc.category.label),
-                  onChanged: (checked) => setState(() {
-                    if (checked ?? false) {
-                      _selectedVaultIds.add(doc.id);
-                    } else {
-                      _selectedVaultIds.remove(doc.id);
-                    }
-                  }),
-                ),
-            const SizedBox(height: 24),
-            Text('Start from a template (optional)', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String?>(
-              initialValue: _templateId,
-              decoration: const InputDecoration(labelText: 'Template'),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('None')),
-                for (final template in templates)
-                  DropdownMenuItem(value: template.id, child: Text('${template.emoji} ${template.name}')),
-              ],
-              onChanged: (value) => setState(() => _templateId = value),
-            ),
-            const SizedBox(height: 28),
-            FilledButton(
-              onPressed: _submit,
-              child: const Text('Create Trip'),
-            ),
           ],
-        ),
+          const SizedBox(height: 20),
+          _DatePickerRow(
+            label: 'Start',
+            date: _startDate,
+            dateFormat: dateFormat,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _startDate,
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+              );
+              if (picked != null) {
+                setState(() {
+                  _startDate = picked;
+                  if (_endDate.isBefore(_startDate)) {
+                    _endDate = _startDate.add(const Duration(days: 7));
+                  }
+                });
+              }
+            },
+          ),
+          _DatePickerRow(
+            label: 'End',
+            date: _endDate,
+            dateFormat: dateFormat,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _endDate,
+                firstDate: _startDate,
+                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+              );
+              if (picked != null) setState(() => _endDate = picked);
+            },
+          ),
+          const SizedBox(height: 24),
+          Text('Attach from Personal Vault (optional)', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          Text(
+            'These stay referenced, never duplicated.',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          if (vaultDocuments.isEmpty)
+            const Text('Your Personal Vault is empty.')
+          else
+            for (final doc in vaultDocuments)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _selectedVaultIds.contains(doc.id),
+                title: Text(doc.displayName),
+                subtitle: Text(doc.category.label),
+                onChanged: (checked) => setState(() {
+                  if (checked ?? false) {
+                    _selectedVaultIds.add(doc.id);
+                  } else {
+                    _selectedVaultIds.remove(doc.id);
+                  }
+                }),
+              ),
+          const SizedBox(height: 24),
+          Text('Start from a template (optional)', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String?>(
+            initialValue: _templateId,
+            decoration: const InputDecoration(labelText: 'Template'),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('None')),
+              for (final template in templates)
+                DropdownMenuItem(value: template.id, child: Text('${template.emoji} ${template.name}')),
+            ],
+            onChanged: (value) => setState(() => _templateId = value),
+          ),
+          const SizedBox(height: 28),
+          FilledButton(
+            onPressed: country == null ? null : _submit,
+            child: const Text('Create Trip'),
+          ),
+          if (country == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'Choose a country to continue.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.error),
+              ),
+            ),
+        ],
       ),
     );
   }
 
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final country = _selectedCountry;
+    if (country == null) return;
 
     final tripManager = context.read<TripManager>();
     final trip = tripManager.createTrip(
-      name: _nameController.text.trim(),
-      destination: _destinationController.text.trim(),
-      flagEmoji: destinationCoverFor(_selectedCountry)?.flagEmoji ?? '🌍',
+      name: country.name,
+      destination: country.name,
+      flagEmoji: country.flagEmoji,
       startDate: _startDate,
       endDate: _endDate,
-      country: _selectedCountry,
-      photoBytes: _customCoverBytes,
-      currency: _currency,
+      country: country.name,
+      currency: country.currency,
+      timezone: country.timezone,
       vaultDocumentIds: _selectedVaultIds.toList(),
     );
 
@@ -653,6 +610,240 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
 
     Navigator.of(context).pop();
+  }
+}
+
+/// Full edit for an existing trip. Changing the country auto-updates the
+/// flag, currency, and cover — unless a custom photo is already set, which
+/// always wins over the auto cover until explicitly removed. The currency
+/// stays editable afterward as a manual override.
+class EditTripScreen extends StatefulWidget {
+  final Trip trip;
+
+  const EditTripScreen({super.key, required this.trip});
+
+  @override
+  State<EditTripScreen> createState() => _EditTripScreenState();
+}
+
+class _EditTripScreenState extends State<EditTripScreen> {
+  late Country? _country;
+  late DateTime _startDate;
+  late DateTime _endDate;
+  late String _currency;
+  Uint8List? _customCoverBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _country = countryByName(widget.trip.country);
+    _startDate = widget.trip.startDate;
+    _endDate = widget.trip.endDate;
+    _currency = widget.trip.currency;
+    _customCoverBytes = widget.trip.photoBytes;
+  }
+
+  Future<void> _pickCountry() async {
+    final picked = await showCountryPicker(context, current: _country);
+    if (picked == null) return;
+    setState(() {
+      _country = picked;
+      _currency = picked.currency;
+    });
+  }
+
+  Future<void> _pickCustomCover() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
+    setState(() => _customCoverBytes = bytes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('MMM d, yyyy');
+    final theme = Theme.of(context);
+    final country = _country;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Edit Trip')),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        children: [
+          Text('Cover photo', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (_customCoverBytes != null)
+                    Image.memory(_customCoverBytes!, fit: BoxFit.cover)
+                  else if (country != null)
+                    DestinationCoverImage(cover: country)
+                  else
+                    Container(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      child: const Text('🌍', style: TextStyle(fontSize: 48)),
+                    ),
+                  Positioned(
+                    right: 8,
+                    bottom: 8,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_customCoverBytes != null) ...[
+                          FilledButton.tonalIcon(
+                            onPressed: () => setState(() => _customCoverBytes = null),
+                            icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                            label: const Text('Use auto cover'),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        FilledButton.tonalIcon(
+                          onPressed: _pickCustomCover,
+                          icon: const Icon(Icons.photo_library_rounded, size: 18),
+                          label: Text(_customCoverBytes == null ? 'Choose photo' : 'Change photo'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text('Country', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          _CountrySelectorTile(country: country, onTap: _pickCountry),
+          const SizedBox(height: 20),
+          _DatePickerRow(
+            label: 'Start',
+            date: _startDate,
+            dateFormat: dateFormat,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _startDate,
+                firstDate: DateTime.now().subtract(const Duration(days: 365 * 3)),
+                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+              );
+              if (picked != null) {
+                setState(() {
+                  _startDate = picked;
+                  if (_endDate.isBefore(_startDate)) {
+                    _endDate = _startDate.add(const Duration(days: 7));
+                  }
+                });
+              }
+            },
+          ),
+          _DatePickerRow(
+            label: 'End',
+            date: _endDate,
+            dateFormat: dateFormat,
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _endDate,
+                firstDate: _startDate,
+                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+              );
+              if (picked != null) setState(() => _endDate = picked);
+            },
+          ),
+          const SizedBox(height: 20),
+          Text('Currency', style: theme.textTheme.titleSmall),
+          const SizedBox(height: 4),
+          Text(
+            'Auto-set from the country — override it here if needed.',
+            style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            initialValue: _currency,
+            decoration: const InputDecoration(labelText: 'Currency'),
+            items: [
+              for (final code in supportedCurrencies) DropdownMenuItem(value: code, child: Text(code)),
+            ],
+            onChanged: (value) => setState(() => _currency = value ?? _currency),
+          ),
+          const SizedBox(height: 28),
+          FilledButton(
+            onPressed: country == null ? null : _save,
+            child: const Text('Save Changes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _save() {
+    final country = _country;
+    if (country == null) return;
+
+    final updated = widget.trip.copyWith(
+      name: country.name,
+      destination: country.name,
+      flagEmoji: country.flagEmoji,
+      country: country.name,
+      startDate: _startDate,
+      endDate: _endDate,
+      currency: _currency,
+      timezone: country.timezone,
+      photoBytes: _customCoverBytes,
+      clearPhotoBytes: _customCoverBytes == null,
+    );
+    context.read<TripManager>().upsertTrip(updated);
+    Navigator.of(context).pop();
+  }
+}
+
+String _shortTimezone(String iana) => iana.split('/').last.replaceAll('_', ' ');
+
+class _CountrySelectorTile extends StatelessWidget {
+  final Country? country;
+  final VoidCallback onTap;
+
+  const _CountrySelectorTile({required this.country, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.colorScheme.outline.withValues(alpha: 0.5)),
+        ),
+        child: Row(
+          children: [
+            if (country != null)
+              Text(country!.flagEmoji, style: const TextStyle(fontSize: 22))
+            else
+              Icon(Icons.public_rounded, color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                country?.name ?? 'Choose a country',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: country == null ? theme.colorScheme.onSurfaceVariant : null,
+                ),
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down_rounded),
+          ],
+        ),
+      ),
+    );
   }
 }
 

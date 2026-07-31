@@ -25,7 +25,7 @@ import '../widgets/trip_selector.dart';
 import '../widgets/weather_card.dart';
 import '../models/expense_entry.dart';
 import '../utils/currency.dart';
-import '../utils/destination_covers.dart';
+import '../utils/world_countries.dart';
 import '../widgets/destination_cover_image.dart';
 import 'trip_manager_screen.dart';
 
@@ -409,8 +409,8 @@ class _CountdownHeroCard extends StatelessWidget {
           children: [
             if (trip.photoBytes != null)
               Image.memory(trip.photoBytes!, fit: BoxFit.cover)
-            else if (destinationCoverFor(trip.country) != null)
-              DestinationCoverImage(cover: destinationCoverFor(trip.country)!)
+            else if (countryByName(trip.country) != null)
+              DestinationCoverImage(cover: countryByName(trip.country)!)
             else
               Container(
                 decoration: BoxDecoration(

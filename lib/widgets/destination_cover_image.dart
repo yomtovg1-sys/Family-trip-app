@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import '../utils/destination_covers.dart';
+import '../utils/world_countries.dart';
 
-/// Renders a [DestinationCover] as a simple vector landscape — a gradient
-/// sky behind a silhouette matching the destination's signature scenery
-/// (a mountain peak, a coastal cliff, etc). Fully offline and destination-
+/// Renders a [Country]'s auto-assigned cover as a simple vector landscape —
+/// a gradient sky behind a silhouette matching its signature scenery (a
+/// mountain peak, a coastal cliff, etc). Fully offline and destination-
 /// matched, with no photo licensing or network dependency.
 class DestinationCoverImage extends StatelessWidget {
-  final DestinationCover cover;
+  final Country cover;
 
   const DestinationCoverImage({super.key, required this.cover});
 
@@ -20,7 +20,7 @@ class DestinationCoverImage extends StatelessWidget {
 }
 
 class _LandscapePainter extends CustomPainter {
-  final DestinationCover cover;
+  final Country cover;
 
   _LandscapePainter(this.cover);
 

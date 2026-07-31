@@ -82,6 +82,7 @@ class TripManager extends ChangeNotifier {
     String? country,
     Uint8List? photoBytes,
     String currency = 'USD',
+    String timezone = 'UTC',
     List<String> vaultDocumentIds = const [],
   }) {
     final trip = Trip(
@@ -95,6 +96,7 @@ class TripManager extends ChangeNotifier {
       country: country,
       photoBytes: photoBytes,
       currency: currency,
+      timezone: timezone,
     );
     tripRepository.add(trip);
     if (vaultDocumentIds.isNotEmpty) {
