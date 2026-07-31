@@ -5,6 +5,8 @@ import '../models/place.dart';
 import '../models/place_draft.dart';
 import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
+import '../utils/country_coordinates.dart';
+import '../utils/world_countries.dart';
 import 'pick_location_screen.dart';
 
 /// The manual-entry / review / edit form for a saved place. Used directly
@@ -193,7 +195,8 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
         ? LatLng(_latitude!, _longitude!)
         : () {
             final sim = context.read<PlacesProvider>().simulatedCurrentLocation(trip.trip.id);
-            return sim != null ? LatLng(sim.latitude, sim.longitude) : const LatLng(39.0968, -120.0324);
+            if (sim != null) return LatLng(sim.latitude, sim.longitude);
+            return capitalCoordinatesFor(countryByName(trip.trip.country)?.iso2 ?? '') ?? const LatLng(20, 0);
           }();
 
     final picked = await Navigator.of(context).push<LatLng>(

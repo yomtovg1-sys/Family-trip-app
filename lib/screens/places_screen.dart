@@ -8,6 +8,8 @@ import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
 import '../services/google_maps_url_parser.dart';
 import '../services/place_extractors.dart';
+import '../utils/country_coordinates.dart';
+import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
@@ -180,7 +182,10 @@ class _PlacesScreenState extends State<PlacesScreen> {
 
   Future<void> _pickFromMap(String tripId) async {
     final sim = context.read<PlacesProvider>().simulatedCurrentLocation(tripId);
-    final anchor = sim != null ? LatLng(sim.latitude, sim.longitude) : const LatLng(39.0968, -120.0324);
+    final trip = context.read<TripProvider>().current.trip;
+    final anchor = sim != null
+        ? LatLng(sim.latitude, sim.longitude)
+        : capitalCoordinatesFor(countryByName(trip.country)?.iso2 ?? '') ?? const LatLng(20, 0);
 
     final picked = await Navigator.of(context).push<LatLng>(
       MaterialPageRoute(builder: (_) => PickLocationScreen(initialCenter: anchor)),

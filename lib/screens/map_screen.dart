@@ -2,27 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import '../models/map_pin.dart';
 import '../models/place.dart';
 import '../models/place_draft.dart';
 import '../providers/places_provider.dart';
+import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
 import '../services/google_maps_url_parser.dart';
 import '../services/place_extractors.dart';
+import '../utils/country_coordinates.dart';
+import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/map/map_layer_chips.dart';
+import '../widgets/map/pin_detail_sheet.dart';
 import '../widgets/places/add_place_sheet.dart';
 import '../widgets/places/nearby_places_panel.dart';
-import '../widgets/places/place_detail_sheet.dart';
-import '../widgets/places/place_filter_chips.dart';
 import 'add_place_screen.dart';
+import 'add_reservation_screen.dart';
 import 'import_google_maps_screen.dart';
 import 'paste_link_screen.dart';
 import 'pick_location_screen.dart';
 import 'place_search_screen.dart';
 
-/// The Map screen — a visual, pin-based view of every place the family has
-/// saved for this trip. See PlacesScreen for the organized list view.
+/// The Map screen — a smart layer on top of OpenStreetMap (no paid map or
+/// places service involved). Every trip item with coordinates — saved
+/// places and reservations the family has pinned — is always drawn as a
+/// pin, grouped into toggleable layers, and centered on the active trip's
+/// country the moment the screen opens.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -32,46 +40,78 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
-  PlaceFilter _filter = PlaceFilter.all;
+  Set<MapLayer> _enabledLayers = MapLayer.values.toSet();
+  bool _initialFitDone = false;
 
-  void _fitToPlaces(List<SavedPlace> places) {
-    if (places.isEmpty) return;
-    if (places.length == 1) {
-      _mapController.move(LatLng(places.first.latitude, places.first.longitude), 13);
+  void _fitToPins(List<MapPin> pins, {required LatLng fallbackCenter, required double fallbackZoom}) {
+    if (pins.isEmpty) {
+      _mapController.move(fallbackCenter, fallbackZoom);
+      return;
+    }
+    if (pins.length == 1) {
+      _mapController.move(LatLng(pins.first.latitude, pins.first.longitude), 13);
       return;
     }
     final bounds = LatLngBounds.fromPoints([
-      for (final p in places) LatLng(p.latitude, p.longitude),
+      for (final pin in pins) LatLng(pin.latitude, pin.longitude),
     ]);
     _mapController.fitCamera(
       CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.fromLTRB(40, 110, 40, 170)),
     );
   }
 
-  void _onFilterSelected(PlaceFilter filter, String tripId) {
-    final newFiltered = context.read<PlacesProvider>().forTrip(tripId).where(filter.matches).toList();
-    setState(() => _filter = filter);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fitToPlaces(newFiltered));
+  void _toggleLayer(MapLayer layer, List<MapPin> allPins, LatLng fallbackCenter, double fallbackZoom) {
+    setState(() {
+      if (_enabledLayers.contains(layer)) {
+        _enabledLayers = {..._enabledLayers}..remove(layer);
+      } else {
+        _enabledLayers = {..._enabledLayers, layer};
+      }
+    });
+    final visible = allPins.where((p) => _enabledLayers.contains(p.layer)).toList();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _fitToPins(visible, fallbackCenter: fallbackCenter, fallbackZoom: fallbackZoom),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final trip = context.watch<TripProvider>().current.trip;
     final placesProvider = context.watch<PlacesProvider>();
-    final allPlaces = placesProvider.forTrip(trip.id);
-    final filtered = allPlaces.where(_filter.matches).toList();
+    final reservationsProvider = context.watch<ReservationsProvider>();
+
+    final places = placesProvider.forTrip(trip.id);
+    final locatedReservations = reservationsProvider.forTrip(trip.id).where((r) => r.hasCoordinates);
+
+    final allPins = [
+      for (final place in places) MapPin.fromPlace(place),
+      for (final reservation in locatedReservations) MapPin.fromReservation(reservation),
+    ];
+    final visiblePins = allPins.where((pin) => _enabledLayers.contains(pin.layer)).toList();
+
+    // Centers on the active trip's country the moment the screen opens —
+    // never a hardcoded place. If the trip has real pins, fitting to their
+    // bounds (below) takes over as soon as the map is ready.
+    final countryCenter = capitalCoordinatesFor(countryByName(trip.country)?.iso2 ?? '');
+    final fallbackCenter = countryCenter ?? const LatLng(20, 0);
+    final fallbackZoom = countryCenter != null ? 6.0 : 2.0;
 
     final currentLocation = placesProvider.simulatedCurrentLocation(trip.id);
     final nearby = currentLocation == null
         ? <SavedPlace>[]
         : placesProvider.nearbyPlaces(trip.id, from: currentLocation);
 
-    final fallbackCenter = currentLocation != null
-        ? LatLng(currentLocation.latitude, currentLocation.longitude)
-        : const LatLng(39.0968, -120.0324);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Map')),
+      appBar: AppBar(
+        title: const Text('Map'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search_rounded),
+            tooltip: 'Search trip items',
+            onPressed: () => _openSearch(allPins),
+          ),
+        ],
+      ),
       drawer: const AppDrawer(currentRoute: AppSection.mapRoute),
       body: Stack(
         children: [
@@ -79,8 +119,12 @@ class _MapScreenState extends State<MapScreen> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: fallbackCenter,
-              initialZoom: 12,
-              onMapReady: () => _fitToPlaces(filtered),
+              initialZoom: fallbackZoom,
+              onMapReady: () {
+                if (_initialFitDone) return;
+                _initialFitDone = true;
+                _fitToPins(visiblePins, fallbackCenter: fallbackCenter, fallbackZoom: fallbackZoom);
+              },
             ),
             children: [
               TileLayer(
@@ -89,14 +133,14 @@ class _MapScreenState extends State<MapScreen> {
               ),
               MarkerLayer(
                 markers: [
-                  for (final place in filtered)
+                  for (final pin in visiblePins)
                     Marker(
-                      point: LatLng(place.latitude, place.longitude),
+                      point: LatLng(pin.latitude, pin.longitude),
                       width: 42,
                       height: 42,
                       child: GestureDetector(
-                        onTap: () => _openPlaceDetail(place),
-                        child: _PlacePin(place: place),
+                        onTap: () => _openPinDetail(pin),
+                        child: _MapPinMarker(pin: pin),
                       ),
                     ),
                 ],
@@ -107,12 +151,12 @@ class _MapScreenState extends State<MapScreen> {
             top: 12,
             left: 12,
             right: 12,
-            child: PlaceFilterChips(
-              selected: _filter,
-              onSelected: (f) => _onFilterSelected(f, trip.id),
+            child: MapLayerChips(
+              enabled: _enabledLayers,
+              onToggle: (layer) => _toggleLayer(layer, allPins, fallbackCenter, fallbackZoom),
             ),
           ),
-          if (allPlaces.isEmpty)
+          if (allPins.isEmpty)
             Positioned(
               left: 32,
               right: 32,
@@ -127,7 +171,7 @@ class _MapScreenState extends State<MapScreen> {
               child: NearbyPlacesPanel(
                 places: nearby,
                 distanceKmFor: (p) => placesProvider.distanceKmFrom(currentLocation!, p),
-                onTapPlace: _openPlaceDetail,
+                onTapPlace: (place) => _openPinDetail(MapPin.fromPlace(place)),
               ),
             ),
         ],
@@ -139,15 +183,37 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _openPlaceDetail(SavedPlace place) {
-    showPlaceDetailSheet(
+  void _openPinDetail(MapPin pin) {
+    showPinDetailSheet(
       context,
-      place: place,
-      onEdit: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => AddPlaceScreen(editing: place)),
-      ),
-      onToggleFavorite: () => context.read<PlacesProvider>().toggleFavorite(place.id),
+      pin: pin,
+      onEdit: () {
+        final place = pin.place;
+        final reservation = pin.reservation;
+        if (place != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => AddPlaceScreen(editing: place)),
+          );
+        } else if (reservation != null) {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => AddReservationScreen(editing: reservation)),
+          );
+        }
+      },
+      onToggleFavorite:
+          pin.place != null ? () => context.read<PlacesProvider>().toggleFavorite(pin.place!.id) : null,
     );
+  }
+
+  Future<void> _openSearch(List<MapPin> allPins) async {
+    final result = await showModalBottomSheet<MapPin>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _TripItemSearchSheet(pins: allPins),
+    );
+    if (result == null || !mounted) return;
+    _mapController.move(LatLng(result.latitude, result.longitude), 15);
+    _openPinDetail(result);
   }
 
   void _showAddPlace(String tripId) {
@@ -203,7 +269,10 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _pickFromMap(String tripId) async {
     final sim = context.read<PlacesProvider>().simulatedCurrentLocation(tripId);
-    final anchor = sim != null ? LatLng(sim.latitude, sim.longitude) : const LatLng(39.0968, -120.0324);
+    final trip = context.read<TripProvider>().current.trip;
+    final anchor = sim != null
+        ? LatLng(sim.latitude, sim.longitude)
+        : capitalCoordinatesFor(countryByName(trip.country)?.iso2 ?? '') ?? const LatLng(20, 0);
 
     final picked = await Navigator.of(context).push<LatLng>(
       MaterialPageRoute(builder: (_) => PickLocationScreen(initialCenter: anchor)),
@@ -220,8 +289,96 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-/// Shown over the map when the trip has no saved places yet — the map
-/// itself still renders (centered on a sensible fallback) so it doesn't
+/// A full-screen search restricted to this trip's own items — places and
+/// pinned reservations — never a general geocoder. A free OSM/Nominatim
+/// place search could be layered in later without changing this sheet's
+/// shape, just what feeds its result list.
+class _TripItemSearchSheet extends StatefulWidget {
+  final List<MapPin> pins;
+
+  const _TripItemSearchSheet({required this.pins});
+
+  @override
+  State<_TripItemSearchSheet> createState() => _TripItemSearchSheetState();
+}
+
+class _TripItemSearchSheetState extends State<_TripItemSearchSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final query = _query.trim().toLowerCase();
+    final results = query.isEmpty
+        ? widget.pins
+        : widget.pins.where((p) => p.title.toLowerCase().contains(query) || p.subtitle.toLowerCase().contains(query)).toList();
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Row(
+                  children: [
+                    Text('Search this trip', style: theme.textTheme.titleMedium),
+                    const Spacer(),
+                    IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.of(context).pop()),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Hotels, reservations, saved places…',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: results.isEmpty
+                    ? Center(
+                        child: Text(
+                          widget.pins.isEmpty ? 'Nothing on the map yet for this trip.' : 'No matches.',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: results.length,
+                        itemBuilder: (context, index) {
+                          final pin = results[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: pin.color.withValues(alpha: 0.16),
+                              child: Text(pin.emoji, style: const TextStyle(fontSize: 18)),
+                            ),
+                            title: Text(pin.title),
+                            subtitle: Text(pin.subtitle.isEmpty ? pin.layer.label : pin.subtitle),
+                            onTap: () => Navigator.of(context).pop(pin),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown over the map when the trip has no pinned items yet — the map
+/// itself still renders (centered on the trip's country) so it doesn't
 /// look broken, but this makes clear there's nothing to see yet.
 class _MapEmptyState extends StatelessWidget {
   final VoidCallback onAddPlace;
@@ -246,10 +403,10 @@ class _MapEmptyState extends StatelessWidget {
             children: [
               const Text('🗺️', style: TextStyle(fontSize: 32)),
               const SizedBox(height: 10),
-              Text('No places saved yet', style: theme.textTheme.titleSmall),
+              Text('No pinned items yet', style: theme.textTheme.titleSmall),
               const SizedBox(height: 4),
               Text(
-                'Tap here to add somewhere you want to visit.',
+                'Tap here to add a place, or pin a reservation\'s location from its edit screen.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
               ),
@@ -261,10 +418,10 @@ class _MapEmptyState extends StatelessWidget {
   }
 }
 
-class _PlacePin extends StatelessWidget {
-  final SavedPlace place;
+class _MapPinMarker extends StatelessWidget {
+  final MapPin pin;
 
-  const _PlacePin({required this.place});
+  const _MapPinMarker({required this.pin});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +432,7 @@ class _PlacePin extends StatelessWidget {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: place.category.color,
+            color: pin.color,
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 2),
             boxShadow: [
@@ -283,9 +440,9 @@ class _PlacePin extends StatelessWidget {
             ],
           ),
           alignment: Alignment.center,
-          child: Text(place.category.emoji, style: const TextStyle(fontSize: 15)),
+          child: Text(pin.emoji, style: const TextStyle(fontSize: 15)),
         ),
-        if (place.isFavorite)
+        if (pin.place?.isFavorite ?? false)
           const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFB300)),
       ],
     );

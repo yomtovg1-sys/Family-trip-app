@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../models/reservation.dart';
@@ -7,9 +8,12 @@ import '../models/reservation_draft.dart';
 import '../models/travel_document.dart';
 import '../providers/reservations_provider.dart';
 import '../providers/trip_provider.dart';
+import '../utils/country_coordinates.dart';
+import '../utils/world_countries.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
 import 'document_viewer_screen.dart';
+import 'pick_location_screen.dart';
 
 class AddReservationScreen extends StatefulWidget {
   final ReservationCategory? category;
@@ -45,6 +49,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _websiteController;
   late final TextEditingController _notesController;
+  LatLng? _pinnedLocation;
 
   bool get _isEditing => widget.editing != null;
 
@@ -73,6 +78,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     _phoneController = TextEditingController(text: editing?.phone ?? '');
     _websiteController = TextEditingController(text: editing?.website ?? '');
     _notesController = TextEditingController(text: editing?.notes ?? '');
+    _pinnedLocation = editing?.hasCoordinates == true ? LatLng(editing!.latitude!, editing.longitude!) : null;
   }
 
   @override
@@ -179,6 +185,34 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
               decoration: const InputDecoration(labelText: 'Location'),
               validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
             ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _pickLocationOnMap,
+                    icon: Icon(_pinnedLocation == null ? Icons.add_location_alt_outlined : Icons.edit_location_alt_rounded, size: 18),
+                    label: Text(_pinnedLocation == null ? 'Set location on map' : 'Change map location'),
+                  ),
+                ),
+                if (_pinnedLocation != null)
+                  IconButton(
+                    tooltip: 'Remove map location',
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => setState(() => _pinnedLocation = null),
+                  ),
+              ],
+            ),
+            if (_pinnedLocation != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 4),
+                child: Text(
+                  'Will appear on the Map screen.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _confirmationController,
@@ -300,6 +334,16 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     await Share.shareXFiles([XFile.fromData(document.bytes, name: document.fileName)]);
   }
 
+  Future<void> _pickLocationOnMap() async {
+    final trip = context.read<TripProvider>().current.trip;
+    final anchor = _pinnedLocation ?? capitalCoordinatesFor(countryByName(trip.country)?.iso2 ?? '') ?? const LatLng(20, 0);
+
+    final picked = await Navigator.of(context).push<LatLng>(
+      MaterialPageRoute(builder: (_) => PickLocationScreen(initialCenter: anchor)),
+    );
+    if (picked != null && mounted) setState(() => _pinnedLocation = picked);
+  }
+
   void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -323,6 +367,8 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       status: _status,
       attachments: _attachments,
+      latitude: _pinnedLocation?.latitude,
+      longitude: _pinnedLocation?.longitude,
     );
 
     if (_isEditing) {

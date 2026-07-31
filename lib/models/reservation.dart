@@ -141,6 +141,8 @@ class Reservation {
   final String? notes;
   final ReservationStatus status;
   final List<TravelDocument> attachments;
+  final double? latitude;
+  final double? longitude;
 
   const Reservation({
     required this.id,
@@ -158,7 +160,14 @@ class Reservation {
     this.notes,
     this.status = ReservationStatus.upcoming,
     this.attachments = const [],
+    this.latitude,
+    this.longitude,
   });
+
+  /// Whether this reservation has been pinned to a spot on the map — set
+  /// optionally, since a confirmation number and a free-text [location]
+  /// string are all a reservation needs otherwise.
+  bool get hasCoordinates => latitude != null && longitude != null;
 
   Reservation copyWith({
     ReservationCategory? category,
@@ -174,6 +183,9 @@ class Reservation {
     String? notes,
     ReservationStatus? status,
     List<TravelDocument>? attachments,
+    double? latitude,
+    double? longitude,
+    bool clearCoordinates = false,
   }) {
     return Reservation(
       id: id,
@@ -191,6 +203,8 @@ class Reservation {
       notes: notes ?? this.notes,
       status: status ?? this.status,
       attachments: attachments ?? this.attachments,
+      latitude: clearCoordinates ? null : (latitude ?? this.latitude),
+      longitude: clearCoordinates ? null : (longitude ?? this.longitude),
     );
   }
 
@@ -212,6 +226,8 @@ class Reservation {
         'notes': notes,
         'status': status.name,
         'attachments': [for (final a in attachments) a.toJson()],
+        'latitude': latitude,
+        'longitude': longitude,
       };
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
@@ -237,6 +253,8 @@ class Reservation {
         for (final a in (json['attachments'] as List? ?? const []))
           TravelDocument.fromJson(a as Map<String, dynamic>),
       ],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
     );
   }
 }
