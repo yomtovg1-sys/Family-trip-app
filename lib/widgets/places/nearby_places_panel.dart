@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/place.dart';
-import '../emoji_text.dart';
 
 /// A horizontal strip of saved places close to the traveler's current
 /// location, shown as a floating panel over the bottom of the map.
@@ -91,7 +90,7 @@ class _NearbyCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  EmojiText(place.category.emoji, style: const TextStyle(fontSize: 16)),
+                  Icon(place.category.icon, color: place.category.color, size: 16),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(

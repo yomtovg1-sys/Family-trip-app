@@ -43,8 +43,12 @@ class MemoriesScreen extends StatelessWidget {
           ),
           Expanded(
             child: photos.isEmpty
-                ? const EmptyState(
-                    visual: Text('📷', style: TextStyle(fontSize: 44)),
+                ? EmptyState(
+                    visual: Icon(
+                      Icons.photo_camera_rounded,
+                      size: 44,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: 'No memories yet',
                     subtitle: 'Tap + to upload your first photo from this trip.',
                   )
@@ -122,7 +126,7 @@ class _CreateAlbumButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
-              const Text('📖', style: TextStyle(fontSize: 24)),
+              Icon(Icons.menu_book_rounded, size: 24, color: theme.colorScheme.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

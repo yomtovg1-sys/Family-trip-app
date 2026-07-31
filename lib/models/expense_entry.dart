@@ -37,6 +37,29 @@ extension ExpenseCategoryX on ExpenseCategory {
     }
   }
 
+  IconData get icon {
+    switch (this) {
+      case ExpenseCategory.flights:
+        return Icons.flight_rounded;
+      case ExpenseCategory.hotel:
+        return Icons.hotel_rounded;
+      case ExpenseCategory.transportation:
+        return Icons.directions_car_rounded;
+      case ExpenseCategory.food:
+        return Icons.restaurant_rounded;
+      case ExpenseCategory.attractions:
+        return Icons.confirmation_number_rounded;
+      case ExpenseCategory.shopping:
+        return Icons.shopping_bag_rounded;
+      case ExpenseCategory.coffee:
+        return Icons.coffee_rounded;
+      case ExpenseCategory.grocery:
+        return Icons.shopping_cart_rounded;
+      case ExpenseCategory.other:
+        return Icons.inventory_2_rounded;
+    }
+  }
+
   String get label {
     switch (this) {
       case ExpenseCategory.flights:

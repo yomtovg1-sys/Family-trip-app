@@ -46,9 +46,6 @@ class AppTheme {
     // 0 zeroes out Material 3's baked-in per-style tracking (e.g.
     // titleMedium: 0.15, labelSmall: 0.5) so text reads with natural,
     // native-feeling spacing everywhere.
-    //
-    // Deliberately no fontFamilyFallback here — see widgets/emoji_text.dart
-    // for where and why that's applied instead.
     return base.copyWith(
       textTheme: base.textTheme.apply(
         letterSpacingFactor: 0,

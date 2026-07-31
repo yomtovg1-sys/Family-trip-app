@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/world_countries.dart';
-import 'emoji_text.dart';
+import 'flag_icon.dart';
 
 /// Opens a searchable full-country picker and resolves with the chosen
 /// [Country], or null if the sheet was dismissed without a selection.
@@ -99,7 +99,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                           final country = results[index];
                           final selected = country.name == widget.current?.name;
                           return ListTile(
-                            leading: EmojiText(country.flagEmoji, style: const TextStyle(fontSize: 24)),
+                            leading: FlagIcon(country, width: 28),
                             title: Text(country.name),
                             trailing: selected ? Icon(Icons.check_rounded, color: theme.colorScheme.primary) : null,
                             selected: selected,

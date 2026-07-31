@@ -84,15 +84,14 @@ flutter:
   # https://flutter.dev/to/asset-from-package
 
   # Bundled locally so the app never needs to fetch fonts from Google Fonts
-  # at runtime — required for the app to render text and emoji while
-  # offline. "Roboto" is the exact family name Flutter's web engine already
-  # defaults to for Material text, so bundling it under that name is enough
-  # for the engine to use it directly instead of downloading it from
-  # fonts.gstatic.com. NotoColorEmoji covers the emoji (flags, trip icons)
-  # used throughout the app; it's wired in as a fallback family through
-  # widgets/emoji_text.dart (never globally through the theme) so glyphs
-  # Roboto doesn't cover resolve to it instead of triggering another CDN
-  # fetch.
+  # at runtime — required for the app to render text while offline.
+  # "Roboto" is the exact family name Flutter's web engine already defaults
+  # to for Material text, so bundling it under that name is enough for the
+  # engine to use it directly instead of downloading it from
+  # fonts.gstatic.com. There's no color-emoji font bundled: country flags
+  # and category glyphs are drawn as vector shapes (widgets/flag_icon.dart)
+  # or Material Icons instead, since color-emoji fonts render inconsistently
+  # across browsers' CanvasKit builds.
   fonts:
     - family: Roboto
       fonts:
@@ -108,9 +107,6 @@ flutter:
           weight: 700
         - asset: assets/fonts/Roboto/Roboto-Black.ttf
           weight: 900
-    - family: NotoColorEmoji
-      fonts:
-        - asset: assets/fonts/NotoColorEmoji.ttf
   #
   # Plain (non-color) symbol glyphs Roboto and Noto Color Emoji don't cover
   # (e.g. the ★ rating glyph) are handled differently: see web/index.html

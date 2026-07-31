@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/place.dart';
 import '../models/place_draft.dart';
 import '../services/place_extractors.dart';
-import '../widgets/emoji_text.dart';
 import 'add_place_screen.dart';
 
 /// "Google Maps search" capture flow: type a place name, pick a result,
@@ -91,7 +90,7 @@ class _PlaceSearchScreenState extends State<PlaceSearchScreen> {
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
-                        child: EmojiText(result.category?.emoji ?? '📍'),
+                        child: Icon(result.category?.icon ?? Icons.location_on_rounded, color: theme.colorScheme.primary),
                       ),
                       title: Text(result.name ?? 'Unnamed place'),
                       subtitle: Text(result.area ?? ''),

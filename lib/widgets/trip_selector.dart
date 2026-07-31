@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/trip.dart';
 import '../providers/trip_provider.dart';
+import '../utils/world_countries.dart';
 import 'app_section.dart';
-import 'emoji_text.dart';
+import 'flag_icon.dart';
 
-String tripChipLabel(Trip trip) =>
-    '${trip.flagEmoji} ${trip.destination.split(',').last.trim()} ${trip.startDate.year}';
+String tripChipLabel(Trip trip) => '${trip.destination.split(',').last.trim()} ${trip.startDate.year}';
 
 /// The chip on Home showing the active trip — tapping it opens Trip
 /// Manager, the one place to switch between trips or create a new one.
@@ -33,7 +33,9 @@ class TripSelector extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              EmojiText(tripChipLabel(trip), style: theme.textTheme.titleSmall),
+              FlagIcon(countryByName(trip.country), width: 20),
+              const SizedBox(width: 6),
+              Text(tripChipLabel(trip), style: theme.textTheme.titleSmall),
               const SizedBox(width: 4),
               Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
             ],

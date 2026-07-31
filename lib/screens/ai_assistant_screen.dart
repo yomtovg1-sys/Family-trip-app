@@ -14,9 +14,10 @@ import '../services/ai_context_service.dart';
 import '../services/ai_repository.dart';
 import '../services/local_trip_assistant_provider.dart';
 import '../services/prompt_builder.dart';
+import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
-import '../widgets/emoji_text.dart';
+import '../widgets/flag_icon.dart';
 import 'album_preview_screen.dart';
 
 /// A personal AI travel assistant that already knows the current trip: its
@@ -179,14 +180,14 @@ class _GreetingHeader extends StatelessWidget {
             gradient: const LinearGradient(colors: [Color(0xFF6C63FF), Color(0xFF9C6BFF)]),
             borderRadius: BorderRadius.circular(14),
           ),
-          child: const Text('✨', style: TextStyle(fontSize: 20)),
+          child: const Icon(Icons.auto_awesome_rounded, size: 20, color: Colors.white),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$greeting! 👋', style: theme.textTheme.titleLarge),
+              Text('$greeting!', style: theme.textTheme.titleLarge),
               Text(
                 'Your personal travel assistant',
                 style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
@@ -230,7 +231,7 @@ class _CurrentTripCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          EmojiText(trip.heroEmoji, style: const TextStyle(fontSize: 30)),
+          Icon(Icons.flight_takeoff_rounded, size: 30, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -238,12 +239,20 @@ class _CurrentTripCard extends StatelessWidget {
               children: [
                 Text(trip.name, style: theme.textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
-                EmojiText(
-                  '${trip.flagEmoji} ${trip.destination} · ${dateFormat.format(trip.startDate)}–'
-                  '${dateFormat.format(trip.endDate)}',
-                  style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    FlagIcon(countryByName(trip.country), width: 16),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        '${trip.destination} · ${dateFormat.format(trip.startDate)}–'
+                        '${dateFormat.format(trip.endDate)}',
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -324,7 +333,7 @@ class _QuickActionGrid extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Row(
                   children: [
-                    EmojiText(action.emoji, style: const TextStyle(fontSize: 22)),
+                    Icon(action.icon, size: 22, color: theme.colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(

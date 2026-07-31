@@ -81,7 +81,7 @@ class WeatherCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Text('✨', style: TextStyle(fontSize: 15)),
+                Icon(Icons.auto_awesome_rounded, size: 15, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

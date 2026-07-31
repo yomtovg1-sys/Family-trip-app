@@ -29,8 +29,12 @@ class TasksScreen extends StatelessWidget {
           ),
           Expanded(
             child: tasks.isEmpty
-                ? const EmptyState(
-                    visual: Text('✅', style: TextStyle(fontSize: 44)),
+                ? EmptyState(
+                    visual: Icon(
+                      Icons.check_circle_rounded,
+                      size: 44,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: 'Nothing to do yet',
                     subtitle: 'Family prep tasks will show up here.',
                   )

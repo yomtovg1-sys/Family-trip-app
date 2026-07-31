@@ -40,7 +40,7 @@ class AiAssistantCard extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('✨', style: TextStyle(fontSize: 20)),
+                child: const Icon(Icons.auto_awesome_rounded, size: 20, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Expanded(

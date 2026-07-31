@@ -10,7 +10,6 @@ import '../providers/reservations_provider.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
-import '../widgets/emoji_text.dart';
 import 'add_reservation_screen.dart';
 import 'document_viewer_screen.dart';
 
@@ -89,7 +88,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               children: [
                 Row(
                   children: [
-                    EmojiText(reservation.category.emoji, style: const TextStyle(fontSize: 22)),
+                    Icon(reservation.category.icon, color: Colors.white, size: 22),
                     const SizedBox(width: 8),
                     if (reservation.subtype != null)
                       Container(

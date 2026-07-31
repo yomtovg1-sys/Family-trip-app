@@ -38,8 +38,12 @@ class PackingScreen extends StatelessWidget {
           ),
           Expanded(
             child: items.isEmpty
-                ? const EmptyState(
-                    visual: Text('🧳', style: TextStyle(fontSize: 44)),
+                ? EmptyState(
+                    visual: Icon(
+                      Icons.luggage_rounded,
+                      size: 44,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     title: 'Nothing to pack yet',
                     subtitle: 'Packing items for this trip will show up here.',
                   )

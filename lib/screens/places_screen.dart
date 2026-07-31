@@ -13,7 +13,6 @@ import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
-import '../widgets/emoji_text.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/places/add_place_sheet.dart';
 import 'add_place_screen.dart';
@@ -79,8 +78,8 @@ class _PlacesScreenState extends State<PlacesScreen> {
           ),
           Expanded(
             child: places.isEmpty
-                ? const EmptyState(
-                    visual: EmojiText('🗺️', style: TextStyle(fontSize: 44)),
+                ? EmptyState(
+                    visual: Icon(Icons.map_rounded, size: 44, color: theme.colorScheme.primary),
                     title: 'No places saved yet',
                     subtitle: 'Tap + to add somewhere you want to visit on this trip.',
                   )
@@ -288,7 +287,7 @@ class _PlaceCard extends StatelessWidget {
               CircleAvatar(
                 radius: 21,
                 backgroundColor: place.category.color.withValues(alpha: 0.16),
-                child: EmojiText(place.category.emoji, style: const TextStyle(fontSize: 18)),
+                child: Icon(place.category.icon, color: place.category.color, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(

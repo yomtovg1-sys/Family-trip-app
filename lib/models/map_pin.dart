@@ -52,7 +52,7 @@ class MapPin {
   final String subtitle;
   final double latitude;
   final double longitude;
-  final String emoji;
+  final IconData icon;
   final Color color;
   final MapLayer layer;
   final SavedPlace? place;
@@ -64,7 +64,7 @@ class MapPin {
     required this.subtitle,
     required this.latitude,
     required this.longitude,
-    required this.emoji,
+    required this.icon,
     required this.color,
     required this.layer,
     this.place,
@@ -84,7 +84,7 @@ class MapPin {
       subtitle: place.area,
       latitude: place.latitude,
       longitude: place.longitude,
-      emoji: place.category.emoji,
+      icon: place.category.icon,
       color: place.category.color,
       layer: layer,
       place: place,
@@ -101,7 +101,7 @@ class MapPin {
       subtitle: reservation.location,
       latitude: reservation.latitude!,
       longitude: reservation.longitude!,
-      emoji: reservation.category.emoji,
+      icon: reservation.category.icon,
       color: reservation.category.color,
       layer: layer,
       reservation: reservation,

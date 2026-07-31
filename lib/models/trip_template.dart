@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'place.dart';
 
 /// A packing item a template suggests. [assignedTo] is a sensible default
@@ -48,7 +49,7 @@ class TemplatePlace {
 class TripTemplate {
   final String id;
   final String name;
-  final String emoji;
+  final IconData icon;
   final String description;
   final List<TemplatePackingItem> packingItems;
   final List<TemplatePlace> favoritePlaces;
@@ -58,7 +59,7 @@ class TripTemplate {
   const TripTemplate({
     required this.id,
     required this.name,
-    required this.emoji,
+    required this.icon,
     required this.description,
     this.packingItems = const [],
     this.favoritePlaces = const [],

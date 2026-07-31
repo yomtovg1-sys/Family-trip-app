@@ -1,19 +1,21 @@
+import 'package:flutter/material.dart';
+
 /// The five large quick-action buttons on the AI Assistant home area.
 enum AIQuickAction { planTrip, findRestaurants, analyzeExpenses, findDocuments, createAlbum }
 
 extension AIQuickActionX on AIQuickAction {
-  String get emoji {
+  IconData get icon {
     switch (this) {
       case AIQuickAction.planTrip:
-        return '🗺️';
+        return Icons.map_rounded;
       case AIQuickAction.findRestaurants:
-        return '🍽️';
+        return Icons.restaurant_rounded;
       case AIQuickAction.analyzeExpenses:
-        return '💰';
+        return Icons.payments_rounded;
       case AIQuickAction.findDocuments:
-        return '📄';
+        return Icons.description_rounded;
       case AIQuickAction.createAlbum:
-        return '📖';
+        return Icons.menu_book_rounded;
     }
   }
 

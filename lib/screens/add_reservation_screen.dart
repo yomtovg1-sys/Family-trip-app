@@ -12,7 +12,6 @@ import '../utils/country_coordinates.dart';
 import '../utils/world_countries.dart';
 import '../widgets/documents/add_document_sheet.dart';
 import '../widgets/documents/document_card.dart';
-import '../widgets/emoji_text.dart';
 import 'document_viewer_screen.dart';
 import 'pick_location_screen.dart';
 
@@ -136,7 +135,8 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
               children: [
                 for (final category in ReservationCategory.values)
                   ChoiceChip(
-                    label: EmojiText('${category.emoji} ${category.singularLabel}'),
+                    avatar: Icon(category.icon, size: 18, color: category.color),
+                    label: Text(category.singularLabel),
                     selected: _category == category,
                     onSelected: (_) => setState(() => _category = category),
                   ),

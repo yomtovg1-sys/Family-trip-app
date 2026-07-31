@@ -7,7 +7,6 @@ import '../providers/places_provider.dart';
 import '../providers/trip_provider.dart';
 import '../utils/country_coordinates.dart';
 import '../utils/world_countries.dart';
-import '../widgets/emoji_text.dart';
 import 'pick_location_screen.dart';
 
 /// The manual-entry / review / edit form for a saved place. Used directly
@@ -271,7 +270,7 @@ class _CategoryButton extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              EmojiText(category.emoji, style: const TextStyle(fontSize: 18)),
+              Icon(category.icon, color: category.color, size: 18),
               const SizedBox(height: 2),
               Text(
                 category.label,

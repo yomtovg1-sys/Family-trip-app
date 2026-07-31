@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../emoji_text.dart';
 
 /// The "+" chooser sheet: every way to add a place to the trip.
 Future<void> showAddPlaceSheet(
@@ -88,7 +87,7 @@ class _AddPlaceSheet extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _OptionTile(
-                emoji: '🔎',
+                icon: Icons.search_rounded,
                 title: 'Google Maps search',
                 subtitle: 'Find a place by name',
                 onTap: () {
@@ -97,7 +96,7 @@ class _AddPlaceSheet extends StatelessWidget {
                 },
               ),
               _OptionTile(
-                emoji: '🔗',
+                icon: Icons.link_rounded,
                 title: 'Paste Google Maps URL',
                 subtitle: 'Share a link from the Google Maps app',
                 onTap: () {
@@ -106,7 +105,7 @@ class _AddPlaceSheet extends StatelessWidget {
                 },
               ),
               _OptionTile(
-                emoji: '📸',
+                icon: Icons.camera_alt_rounded,
                 title: 'Scan screenshot',
                 subtitle: 'AI-read a place card screenshot',
                 onTap: () {
@@ -115,7 +114,7 @@ class _AddPlaceSheet extends StatelessWidget {
                 },
               ),
               _OptionTile(
-                emoji: '🌐',
+                icon: Icons.public_rounded,
                 title: 'Paste website',
                 subtitle: 'Add from a restaurant or hotel website',
                 onTap: () {
@@ -124,7 +123,7 @@ class _AddPlaceSheet extends StatelessWidget {
                 },
               ),
               _OptionTile(
-                emoji: '✍️',
+                icon: Icons.edit_rounded,
                 title: 'Manual entry',
                 subtitle: 'Type in the details yourself',
                 onTap: () {
@@ -133,7 +132,7 @@ class _AddPlaceSheet extends StatelessWidget {
                 },
               ),
               _OptionTile(
-                emoji: '📍',
+                icon: Icons.location_on_rounded,
                 title: 'Pick from map',
                 subtitle: 'Drop a pin on the map to save it',
                 onTap: () {
@@ -143,7 +142,7 @@ class _AddPlaceSheet extends StatelessWidget {
               ),
               const Divider(height: 20),
               _OptionTile(
-                emoji: '📥',
+                icon: Icons.download_rounded,
                 title: 'Import from Google Maps',
                 subtitle: 'Bring in your saved lists all at once',
                 onTap: () {
@@ -160,13 +159,13 @@ class _AddPlaceSheet extends StatelessWidget {
 }
 
 class _OptionTile extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
   const _OptionTile({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -193,7 +192,7 @@ class _OptionTile extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: EmojiText(emoji, style: const TextStyle(fontSize: 22)),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(

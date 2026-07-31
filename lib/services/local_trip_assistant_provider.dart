@@ -196,7 +196,7 @@ class LocalTripAssistantProvider implements AIProvider {
     if (todaysReservations.isNotEmpty) {
       buffer.writeln('Today for ${ctx.trip.name}:');
       for (final r in todaysReservations) {
-        buffer.writeln('• ${r.category.emoji} ${r.title} at ${DateFormat('h:mm a').format(r.dateTime)}');
+        buffer.writeln('• ${r.title} at ${DateFormat('h:mm a').format(r.dateTime)}');
       }
     } else if (!ctx.trip.hasStarted) {
       buffer.writeln(
@@ -298,7 +298,7 @@ class LocalTripAssistantProvider implements AIProvider {
       );
     }
     final sorted = ctx.expensesByCategory.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-    final lines = sorted.map((e) => '• ${e.key.emoji} ${e.key.label}: ${formatMoney(e.value, currency)}');
+    final lines = sorted.map((e) => '• ${e.key.label}: ${formatMoney(e.value, currency)}');
     return AIProviderReply(
       text: 'Expenses by category for ${ctx.trip.name} '
           '(total ${formatMoney(ctx.totalExpenses, currency)}):\n\n${lines.join('\n')}',
@@ -341,7 +341,7 @@ class LocalTripAssistantProvider implements AIProvider {
     }
     final next = upcoming.first;
     return AIProviderReply(
-      text: 'Your next reservation is ${next.category.emoji} ${next.title} on '
+      text: 'Your next reservation is ${next.title} on '
           '${DateFormat('EEE, MMM d · h:mm a').format(next.dateTime)} at ${next.location} '
           '(confirmation ${next.confirmationNumber}).',
       suggestedAction: AIQuickLinkTarget.reservations,
@@ -378,7 +378,7 @@ class LocalTripAssistantProvider implements AIProvider {
       );
     }
     final sorted = [...ctx.reservations]..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-    final lines = sorted.map((r) => '• ${r.category.emoji} ${r.title} — ${DateFormat('MMM d').format(r.dateTime)}');
+    final lines = sorted.map((r) => '• ${r.title} — ${DateFormat('MMM d').format(r.dateTime)}');
     return AIProviderReply(
       text: 'All reservations for ${ctx.trip.name}:\n\n${lines.join('\n')}',
       suggestedAction: AIQuickLinkTarget.reservations,
@@ -467,7 +467,7 @@ class LocalTripAssistantProvider implements AIProvider {
     final suggestions = [
       '${trip.destination} $year',
       'Our ${trip.name}',
-      '${trip.flagEmoji} ${trip.destination} Adventure',
+      '${trip.destination} Adventure',
     ];
     return AIProviderReply(
       text: 'A few album title ideas for ${trip.name}:\n\n${suggestions.map((s) => '• $s').join('\n')}',
@@ -491,7 +491,7 @@ class LocalTripAssistantProvider implements AIProvider {
         return '• Already captioned: "${photo.caption}"';
       }
       return '• Photo from ${dateFormat.format(photo.takenAt)}: try something like '
-          '"Another perfect day in ${ctx.trip.destination} ✨"';
+          '"Another perfect day in ${ctx.trip.destination}"';
     });
     return AIProviderReply(
       text: 'Caption ideas for your recent memories:\n\n${lines.join('\n')}\n\n'
@@ -504,7 +504,7 @@ class LocalTripAssistantProvider implements AIProvider {
   AIProviderReply _tripSummary(TripContextModel ctx, String currency) {
     final trip = ctx.trip;
     final buffer = StringBuffer()
-      ..writeln('${trip.flagEmoji} ${trip.name} — ${trip.destination}')
+      ..writeln('${trip.name} — ${trip.destination}')
       ..writeln('${DateFormat('MMM d').format(trip.startDate)}–${DateFormat('MMM d, yyyy').format(trip.endDate)} '
           '(${trip.durationInDays} days)');
     if (ctx.places.isNotEmpty) {
@@ -530,7 +530,7 @@ class LocalTripAssistantProvider implements AIProvider {
     final remaining = ctx.packingItems.length - ctx.packedCount;
     return AIProviderReply(
       text: "You've packed ${ctx.packedCount} of ${ctx.packingItems.length} items"
-          '${remaining > 0 ? ' — $remaining left to go' : ' — all packed! 🎉'} for ${ctx.trip.name}.',
+          '${remaining > 0 ? ' — $remaining left to go' : ' — all packed!'} for ${ctx.trip.name}.',
       suggestedAction: AIQuickLinkTarget.packing,
       suggestedActionLabel: 'Open Packing List',
     );

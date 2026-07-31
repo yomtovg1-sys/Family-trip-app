@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/reservation.dart';
 import '../countdown_timer.dart';
-import '../emoji_text.dart';
 
 class UpcomingReservationCard extends StatelessWidget {
   final Reservation? reservation;
@@ -72,7 +71,7 @@ class UpcomingReservationCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  EmojiText(reservation.category.emoji, style: const TextStyle(fontSize: 18)),
+                  Icon(reservation.category.icon, color: Colors.white, size: 18),
                   const SizedBox(width: 8),
                   Text(
                     'UPCOMING RESERVATION',

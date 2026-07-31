@@ -27,7 +27,7 @@ import '../models/expense_entry.dart';
 import '../utils/currency.dart';
 import '../utils/world_countries.dart';
 import '../widgets/destination_cover_image.dart';
-import '../widgets/emoji_text.dart';
+import '../widgets/flag_icon.dart';
 import 'trip_manager_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -239,7 +239,7 @@ class HomeScreen extends StatelessWidget {
       _QuickAccessCard(
         title: 'Reservations',
         subtitle: nextReservation != null
-            ? '${nextReservation.category.emoji} ${nextReservation.category.singularLabel} · ${relativeDay(nextReservation.dateTime)}'
+            ? '${nextReservation.category.singularLabel} · ${relativeDay(nextReservation.dateTime)}'
             : reservationsCount == 0
                 ? 'No bookings yet'
                 : '$reservationsCount saved',
@@ -320,7 +320,7 @@ class _RecentExpenses extends StatelessWidget {
                 leading: CircleAvatar(
                   radius: 18,
                   backgroundColor: entry.category.color.withValues(alpha: 0.15),
-                  child: EmojiText(entry.category.emoji, style: const TextStyle(fontSize: 15)),
+                  child: Icon(entry.category.icon, color: entry.category.color, size: 15),
                 ),
                 title: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(dateFormat.format(entry.date)),
@@ -424,7 +424,7 @@ class _CountdownHeroCard extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Opacity(
                   opacity: 0.22,
-                  child: EmojiText(trip.heroEmoji, style: const TextStyle(fontSize: 160)),
+                  child: Icon(Icons.flight_rounded, size: 160, color: theme.colorScheme.onPrimary),
                 ),
               ),
             const DecoratedBox(
@@ -489,7 +489,7 @@ class _GlassPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  EmojiText(trip.flagEmoji, style: const TextStyle(fontSize: 17)),
+                  FlagIcon(countryByName(trip.country), width: 24),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -552,7 +552,7 @@ class _GlassPanel extends StatelessWidget {
   Widget _buildHeadline(BuildContext context) {
     if (trip.hasEnded) {
       return const Text(
-        'What a trip! 🎉',
+        'What a trip!',
         style: TextStyle(
           color: Colors.white,
           fontSize: 30,
@@ -594,7 +594,7 @@ class _GlassPanel extends StatelessWidget {
     }
     if (trip.hasStarted) {
       return Text(
-        "We're making memories in ${trip.destination}! 🏕️",
+        "We're making memories in ${trip.destination}!",
         style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
       );
     }
@@ -710,7 +710,7 @@ class _QuickAccessCardState extends State<_QuickAccessCard> {
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
-                EmojiText(
+                Text(
                   widget.subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -745,7 +745,7 @@ class _WelcomeScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const EmojiText('🌍', style: TextStyle(fontSize: 72)),
+                Icon(Icons.public_rounded, size: 72, color: theme.colorScheme.primary),
                 const SizedBox(height: 20),
                 Text(
                   'Plan your next family adventure',

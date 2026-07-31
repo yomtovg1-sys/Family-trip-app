@@ -8,7 +8,6 @@ import '../services/document_extractor.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
-import '../widgets/emoji_text.dart';
 import '../widgets/reservations/reservation_tile.dart';
 import '../widgets/reservations/upcoming_reservation_card.dart';
 import 'add_reservation_screen.dart';
@@ -87,7 +86,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   (c) => c != ReservationCategory.other,
                 ))
                   _FilterChip(
-                    label: '${category.emoji} ${category.label}',
+                    icon: category.icon,
+                    label: category.label,
                     selected: _category == category,
                     onTap: () => setState(
                       () => _category = _category == category ? null : category,
@@ -181,6 +181,7 @@ class _FilterChip extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
   final bool outlined;
+  final IconData? icon;
 
   const _FilterChip({
     required this.label,
@@ -188,6 +189,7 @@ class _FilterChip extends StatelessWidget {
     required this.onTap,
     this.color,
     this.outlined = false,
+    this.icon,
   });
 
   @override
@@ -211,13 +213,32 @@ class _FilterChip extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: EmojiText(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: selected ? activeColor : theme.colorScheme.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              ),
-            ),
+            child: icon == null
+                ? Text(
+                    label,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: selected ? activeColor : theme.colorScheme.onSurfaceVariant,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        icon,
+                        size: 15,
+                        color: selected ? activeColor : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: selected ? activeColor : theme.colorScheme.onSurfaceVariant,
+                          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -313,7 +334,7 @@ class _TypeTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              EmojiText(category.emoji, style: const TextStyle(fontSize: 26)),
+              Icon(category.icon, size: 26, color: category.color),
               const SizedBox(height: 8),
               Text(
                 category.singularLabel,
@@ -349,9 +370,12 @@ class _AddReservationMethodSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            EmojiText(
-              '${category.emoji} New ${category.singularLabel}',
-              style: theme.textTheme.titleLarge,
+            Row(
+              children: [
+                Icon(category.icon, color: category.color),
+                const SizedBox(width: 8),
+                Text('New ${category.singularLabel}', style: theme.textTheme.titleLarge),
+              ],
             ),
             const SizedBox(height: 18),
             ListTile(

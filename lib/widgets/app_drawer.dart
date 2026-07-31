@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/trip_provider.dart';
+import '../utils/world_countries.dart';
 import 'app_section.dart';
-import 'emoji_text.dart';
+import 'flag_icon.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -42,7 +43,7 @@ class AppDrawer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  EmojiText(trip.heroEmoji, style: const TextStyle(fontSize: 32)),
+                  FlagIcon(countryByName(trip.country), width: 36),
                   const SizedBox(height: 8),
                   Text(
                     trip.name,

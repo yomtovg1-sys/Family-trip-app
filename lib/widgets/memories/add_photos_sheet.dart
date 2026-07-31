@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../emoji_text.dart';
 
 /// The "upload photos" chooser for the Memories page: library or camera.
 Future<void> showAddPhotosSheet(
@@ -53,7 +52,7 @@ class _AddPhotosSheet extends StatelessWidget {
             Text('Add Photos', style: theme.textTheme.titleLarge),
             const SizedBox(height: 12),
             _OptionTile(
-              emoji: '🖼️',
+              icon: Icons.photo_library_rounded,
               title: 'Choose from Photos',
               subtitle: 'Pick one or more photos',
               onTap: () {
@@ -62,7 +61,7 @@ class _AddPhotosSheet extends StatelessWidget {
               },
             ),
             _OptionTile(
-              emoji: '📷',
+              icon: Icons.camera_alt_rounded,
               title: 'Take a Photo',
               subtitle: 'Use the camera',
               onTap: () {
@@ -78,13 +77,13 @@ class _AddPhotosSheet extends StatelessWidget {
 }
 
 class _OptionTile extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
   const _OptionTile({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -111,7 +110,7 @@ class _OptionTile extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: EmojiText(emoji, style: const TextStyle(fontSize: 22)),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(

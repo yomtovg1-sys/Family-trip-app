@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import '../models/place.dart';
 import '../models/trip_template.dart';
 
@@ -28,7 +29,7 @@ class InMemoryTemplateRepository implements TemplateRepository {
       const TripTemplate(
         id: 'template-japan',
         name: 'Japan Template',
-        emoji: '🗼',
+        icon: Icons.location_city_rounded,
         description: 'A starting point for any Japan trip: rail-friendly packing, iconic spots, and visa prep.',
         packingItems: [
           TemplatePackingItem(name: 'Passport & visa copies', category: 'Essentials'),
@@ -76,7 +77,7 @@ class InMemoryTemplateRepository implements TemplateRepository {
       const TripTemplate(
         id: 'template-beach',
         name: 'Beach Getaway Template',
-        emoji: '🏖️',
+        icon: Icons.beach_access_rounded,
         description: 'Sun, sand, and nothing forgotten — packing and checklist for a relaxed beach trip.',
         packingItems: [
           TemplatePackingItem(name: 'Swimsuits', category: 'Clothing'),
@@ -96,7 +97,7 @@ class InMemoryTemplateRepository implements TemplateRepository {
       const TripTemplate(
         id: 'template-road-trip',
         name: 'Road Trip Template',
-        emoji: '🚗',
+        icon: Icons.directions_car_rounded,
         description: 'For multi-stop drives: car essentials, roadside snacks, and a rest-stop checklist.',
         packingItems: [
           TemplatePackingItem(name: 'Phone car mount & charger', category: 'Electronics'),

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../models/google_maps_import.dart';
 import '../providers/places_provider.dart';
 import '../services/google_maps_import_service.dart';
-import '../widgets/emoji_text.dart';
 
 enum _Stage { loadingLists, choosing, importing, summary }
 
@@ -124,7 +123,7 @@ class _ChoosingView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Text('📥', style: TextStyle(fontSize: 28)),
+              Icon(Icons.download_rounded, color: theme.colorScheme.primary, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -171,7 +170,8 @@ class _ChoosingView extends StatelessWidget {
                     child: CheckboxListTile(
                       value: selectedListIds.contains(list.id),
                       onChanged: (v) => onListToggled(list.id, v ?? false),
-                      title: EmojiText('${list.type.emoji} ${list.name}'),
+                      secondary: Icon(list.type.icon),
+                      title: Text(list.name),
                       subtitle: Text('${list.placeCount} places'),
                     ),
                   ),
@@ -249,19 +249,19 @@ class _SummaryView extends StatelessWidget {
           Text('Import complete', style: theme.textTheme.titleLarge),
           const SizedBox(height: 20),
           _SummaryRow(
-            emoji: '✅',
+            icon: Icons.check_circle_rounded,
             label: 'places imported',
             value: result.importedCount,
             color: const Color(0xFF2F9E44),
           ),
           _SummaryRow(
-            emoji: '♻️',
+            icon: Icons.recycling_rounded,
             label: 'duplicates skipped',
             value: result.duplicatesSkipped,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           _SummaryRow(
-            emoji: '⚠️',
+            icon: Icons.warning_amber_rounded,
             label: 'failed',
             value: result.failed,
             color: const Color(0xFFE8590C),
@@ -282,12 +282,12 @@ class _SummaryView extends StatelessWidget {
 }
 
 class _SummaryRow extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String label;
   final int value;
   final Color color;
 
-  const _SummaryRow({required this.emoji, required this.label, required this.value, required this.color});
+  const _SummaryRow({required this.icon, required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -297,7 +297,7 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 18)),
+          Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
           Text(
             '$value',

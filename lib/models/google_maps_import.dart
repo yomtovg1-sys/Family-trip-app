@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'place.dart';
 
 /// The kind of Google Maps saved-places list a place can come from — mirrors
@@ -5,16 +6,16 @@ import 'place.dart';
 enum GoogleMapsListType { favorites, wantToGo, starred, custom }
 
 extension GoogleMapsListTypeX on GoogleMapsListType {
-  String get emoji {
+  IconData get icon {
     switch (this) {
       case GoogleMapsListType.favorites:
-        return '❤️';
+        return Icons.favorite_rounded;
       case GoogleMapsListType.wantToGo:
-        return '🔖';
+        return Icons.bookmark_rounded;
       case GoogleMapsListType.starred:
-        return '⭐';
+        return Icons.star_rounded;
       case GoogleMapsListType.custom:
-        return '📋';
+        return Icons.list_alt_rounded;
     }
   }
 }

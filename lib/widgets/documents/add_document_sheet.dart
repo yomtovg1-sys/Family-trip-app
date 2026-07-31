@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/travel_document.dart';
 import '../../services/document_picker.dart';
-import '../emoji_text.dart';
 
 /// The native-style "Add Document" action sheet: Files, Photos, or Camera —
 /// matching the familiar iOS attachment picker instead of jumping straight
@@ -58,7 +57,7 @@ class _AddDocumentSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _OptionTile(
-              emoji: '📂',
+              icon: Icons.folder_rounded,
               title: 'Files',
               subtitle: 'Choose a document or PDF from Files',
               onTap: () async {
@@ -68,7 +67,7 @@ class _AddDocumentSheet extends StatelessWidget {
               },
             ),
             _OptionTile(
-              emoji: '🖼️',
+              icon: Icons.photo_library_rounded,
               title: 'Photos',
               subtitle: 'Choose an existing photo or screenshot',
               onTap: () async {
@@ -78,7 +77,7 @@ class _AddDocumentSheet extends StatelessWidget {
               },
             ),
             _OptionTile(
-              emoji: '📷',
+              icon: Icons.camera_alt_rounded,
               title: 'Camera',
               subtitle: 'Scan or photograph a document now',
               onTap: () async {
@@ -95,13 +94,13 @@ class _AddDocumentSheet extends StatelessWidget {
 }
 
 class _OptionTile extends StatelessWidget {
-  final String emoji;
+  final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
 
   const _OptionTile({
-    required this.emoji,
+    required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
@@ -128,7 +127,7 @@ class _OptionTile extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: EmojiText(emoji, style: const TextStyle(fontSize: 22)),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
