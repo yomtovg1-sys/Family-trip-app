@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/expense_entry.dart';
 import '../utils/currency.dart';
+import 'emoji_text.dart';
 
 class ExpensesCard extends StatelessWidget {
   final double todayTotal;
@@ -90,7 +91,7 @@ class ExpensesCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(entry.key.emoji, style: const TextStyle(fontSize: 12)),
+                              EmojiText(entry.key.emoji, style: const TextStyle(fontSize: 12)),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(entry.key.label, style: theme.textTheme.bodySmall),

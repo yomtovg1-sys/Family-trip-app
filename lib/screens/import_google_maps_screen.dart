@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/google_maps_import.dart';
 import '../providers/places_provider.dart';
 import '../services/google_maps_import_service.dart';
+import '../widgets/emoji_text.dart';
 
 enum _Stage { loadingLists, choosing, importing, summary }
 
@@ -170,7 +171,7 @@ class _ChoosingView extends StatelessWidget {
                     child: CheckboxListTile(
                       value: selectedListIds.contains(list.id),
                       onChanged: (v) => onListToggled(list.id, v ?? false),
-                      title: Text('${list.type.emoji} ${list.name}'),
+                      title: EmojiText('${list.type.emoji} ${list.name}'),
                       subtitle: Text('${list.placeCount} places'),
                     ),
                   ),

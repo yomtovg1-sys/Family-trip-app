@@ -8,6 +8,7 @@ import '../services/document_extractor.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/emoji_text.dart';
 import '../widgets/reservations/reservation_tile.dart';
 import '../widgets/reservations/upcoming_reservation_card.dart';
 import 'add_reservation_screen.dart';
@@ -210,7 +211,7 @@ class _FilterChip extends StatelessWidget {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Text(
+            child: EmojiText(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
                 color: selected ? activeColor : theme.colorScheme.onSurfaceVariant,
@@ -312,7 +313,7 @@ class _TypeTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              Text(category.emoji, style: const TextStyle(fontSize: 26)),
+              EmojiText(category.emoji, style: const TextStyle(fontSize: 26)),
               const SizedBox(height: 8),
               Text(
                 category.singularLabel,
@@ -348,7 +349,7 @@ class _AddReservationMethodSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            EmojiText(
               '${category.emoji} New ${category.singularLabel}',
               style: theme.textTheme.titleLarge,
             ),

@@ -6,6 +6,7 @@ import '../providers/trip_provider.dart';
 import '../utils/currency.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
+import '../widgets/emoji_text.dart';
 import '../widgets/expenses/add_expense_sheet.dart';
 import '../widgets/expenses_card.dart';
 
@@ -57,7 +58,7 @@ class ExpensesScreen extends StatelessWidget {
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: entry.category.color.withValues(alpha: 0.15),
-                    child: Text(entry.category.emoji, style: const TextStyle(fontSize: 18)),
+                    child: EmojiText(entry.category.emoji, style: const TextStyle(fontSize: 18)),
                   ),
                   title: Text(entry.title),
                   subtitle: Text('${entry.category.label} · ${dateFormat.format(entry.date)}'),

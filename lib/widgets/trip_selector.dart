@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/trip.dart';
 import '../providers/trip_provider.dart';
 import 'app_section.dart';
+import 'emoji_text.dart';
 
 String tripChipLabel(Trip trip) =>
     '${trip.flagEmoji} ${trip.destination.split(',').last.trim()} ${trip.startDate.year}';
@@ -32,7 +33,7 @@ class TripSelector extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(tripChipLabel(trip), style: theme.textTheme.titleSmall),
+              EmojiText(tripChipLabel(trip), style: theme.textTheme.titleSmall),
               const SizedBox(width: 4),
               Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
             ],

@@ -5,6 +5,7 @@ import '../../models/map_pin.dart';
 import '../../models/place.dart';
 import '../../models/reservation.dart';
 import '../../utils/map_links.dart';
+import '../emoji_text.dart';
 
 /// The bottom sheet shown when any pin on the Map screen is tapped — a
 /// place or a reservation alike, since both flow through [MapPin]. Shows
@@ -58,7 +59,7 @@ class _PinDetailSheet extends StatelessWidget {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: pin.color.withValues(alpha: 0.16),
-                  child: Text(pin.emoji, style: const TextStyle(fontSize: 22)),
+                  child: EmojiText(pin.emoji, style: const TextStyle(fontSize: 22)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(

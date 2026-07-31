@@ -6,6 +6,7 @@ import '../../models/travel_document.dart';
 import '../../services/expense_extractor.dart';
 import '../../utils/currency.dart';
 import '../documents/add_document_sheet.dart';
+import '../emoji_text.dart';
 import '../image_or_placeholder.dart';
 
 /// The "Add Expense" bottom sheet. Built for speed: amount + category is
@@ -436,7 +437,7 @@ class _CategoryButton extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(category.emoji, style: const TextStyle(fontSize: 22)),
+              EmojiText(category.emoji, style: const TextStyle(fontSize: 22)),
               const SizedBox(height: 4),
               Text(
                 category.label,

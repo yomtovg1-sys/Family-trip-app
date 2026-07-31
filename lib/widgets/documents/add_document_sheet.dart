@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/travel_document.dart';
 import '../../services/document_picker.dart';
+import '../emoji_text.dart';
 
 /// The native-style "Add Document" action sheet: Files, Photos, or Camera —
 /// matching the familiar iOS attachment picker instead of jumping straight
@@ -127,7 +128,7 @@ class _OptionTile extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                child: EmojiText(emoji, style: const TextStyle(fontSize: 22)),
               ),
               const SizedBox(width: 14),
               Expanded(

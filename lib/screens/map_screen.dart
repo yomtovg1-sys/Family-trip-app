@@ -15,6 +15,7 @@ import '../utils/world_countries.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_section.dart';
 import '../widgets/documents/add_document_sheet.dart';
+import '../widgets/emoji_text.dart';
 import '../widgets/map/map_layer_chips.dart';
 import '../widgets/map/pin_detail_sheet.dart';
 import '../widgets/places/add_place_sheet.dart';
@@ -360,7 +361,7 @@ class _TripItemSearchSheetState extends State<_TripItemSearchSheet> {
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: pin.color.withValues(alpha: 0.16),
-                              child: Text(pin.emoji, style: const TextStyle(fontSize: 18)),
+                              child: EmojiText(pin.emoji, style: const TextStyle(fontSize: 18)),
                             ),
                             title: Text(pin.title),
                             subtitle: Text(pin.subtitle.isEmpty ? pin.layer.label : pin.subtitle),
@@ -401,7 +402,7 @@ class _MapEmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🗺️', style: TextStyle(fontSize: 32)),
+              const EmojiText('🗺️', style: TextStyle(fontSize: 32)),
               const SizedBox(height: 10),
               Text('No pinned items yet', style: theme.textTheme.titleSmall),
               const SizedBox(height: 4),
@@ -440,7 +441,7 @@ class _MapPinMarker extends StatelessWidget {
             ],
           ),
           alignment: Alignment.center,
-          child: Text(pin.emoji, style: const TextStyle(fontSize: 15)),
+          child: EmojiText(pin.emoji, style: const TextStyle(fontSize: 15)),
         ),
         if (pin.place?.isFavorite ?? false)
           const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFB300)),

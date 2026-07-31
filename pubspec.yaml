@@ -89,9 +89,10 @@ flutter:
   # defaults to for Material text, so bundling it under that name is enough
   # for the engine to use it directly instead of downloading it from
   # fonts.gstatic.com. NotoColorEmoji covers the emoji (flags, trip icons)
-  # used throughout the app; it's wired in as a fallback family in
-  # AppTheme so glyphs Roboto doesn't cover resolve to it instead of
-  # triggering another CDN fetch.
+  # used throughout the app; it's wired in as a fallback family through
+  # widgets/emoji_text.dart (never globally through the theme) so glyphs
+  # Roboto doesn't cover resolve to it instead of triggering another CDN
+  # fetch.
   fonts:
     - family: Roboto
       fonts:

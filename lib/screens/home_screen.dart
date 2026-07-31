@@ -27,6 +27,7 @@ import '../models/expense_entry.dart';
 import '../utils/currency.dart';
 import '../utils/world_countries.dart';
 import '../widgets/destination_cover_image.dart';
+import '../widgets/emoji_text.dart';
 import 'trip_manager_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -319,7 +320,7 @@ class _RecentExpenses extends StatelessWidget {
                 leading: CircleAvatar(
                   radius: 18,
                   backgroundColor: entry.category.color.withValues(alpha: 0.15),
-                  child: Text(entry.category.emoji, style: const TextStyle(fontSize: 15)),
+                  child: EmojiText(entry.category.emoji, style: const TextStyle(fontSize: 15)),
                 ),
                 title: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(dateFormat.format(entry.date)),
@@ -423,7 +424,7 @@ class _CountdownHeroCard extends StatelessWidget {
                 alignment: Alignment.center,
                 child: Opacity(
                   opacity: 0.22,
-                  child: Text(trip.heroEmoji, style: const TextStyle(fontSize: 160)),
+                  child: EmojiText(trip.heroEmoji, style: const TextStyle(fontSize: 160)),
                 ),
               ),
             const DecoratedBox(
@@ -488,7 +489,7 @@ class _GlassPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(trip.flagEmoji, style: const TextStyle(fontSize: 17)),
+                  EmojiText(trip.flagEmoji, style: const TextStyle(fontSize: 17)),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -709,7 +710,7 @@ class _QuickAccessCardState extends State<_QuickAccessCard> {
                   style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 2),
-                Text(
+                EmojiText(
                   widget.subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -744,7 +745,7 @@ class _WelcomeScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('🌍', style: TextStyle(fontSize: 72)),
+                const EmojiText('🌍', style: TextStyle(fontSize: 72)),
                 const SizedBox(height: 20),
                 Text(
                   'Plan your next family adventure',

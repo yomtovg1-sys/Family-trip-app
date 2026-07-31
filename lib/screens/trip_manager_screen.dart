@@ -23,6 +23,7 @@ import '../widgets/app_section.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/country_picker_sheet.dart';
 import '../widgets/destination_cover_image.dart';
+import '../widgets/emoji_text.dart';
 
 /// The Trip Manager: the visible face of [TripManager]. This is where a
 /// family creates a trip (optionally attaching Personal Vault documents and
@@ -97,7 +98,7 @@ class _TripCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(trip.flagEmoji, style: const TextStyle(fontSize: 26)),
+                  EmojiText(trip.flagEmoji, style: const TextStyle(fontSize: 26)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -285,7 +286,7 @@ class _CopyMoveSheetState extends State<_CopyMoveSheet> {
                 decoration: const InputDecoration(labelText: 'To trip'),
                 items: [
                   for (final trip in trips)
-                    DropdownMenuItem(value: trip.id, child: Text('${trip.flagEmoji} ${trip.name}')),
+                    DropdownMenuItem(value: trip.id, child: EmojiText('${trip.flagEmoji} ${trip.name}')),
                 ],
                 onChanged: (value) => setState(() => _destinationTripId = value),
               ),
@@ -378,7 +379,7 @@ class _TemplateSheet extends StatelessWidget {
                   side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                 ),
                 child: ListTile(
-                  leading: Text(template.emoji, style: const TextStyle(fontSize: 22)),
+                  leading: EmojiText(template.emoji, style: const TextStyle(fontSize: 22)),
                   title: Text(template.name),
                   subtitle: Text(template.description),
                   onTap: () => _confirmApply(context, template),
@@ -466,7 +467,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('🌍', style: TextStyle(fontSize: 40)),
+                          const EmojiText('🌍', style: TextStyle(fontSize: 40)),
                           const SizedBox(height: 8),
                           Text(
                             'Pick a country to see your cover',
@@ -559,7 +560,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             items: [
               const DropdownMenuItem(value: null, child: Text('None')),
               for (final template in templates)
-                DropdownMenuItem(value: template.id, child: Text('${template.emoji} ${template.name}')),
+                DropdownMenuItem(value: template.id, child: EmojiText('${template.emoji} ${template.name}')),
             ],
             onChanged: (value) => setState(() => _templateId = value),
           ),
@@ -689,7 +690,7 @@ class _EditTripScreenState extends State<EditTripScreen> {
                     Container(
                       color: theme.colorScheme.surfaceContainerHighest,
                       alignment: Alignment.center,
-                      child: const Text('🌍', style: TextStyle(fontSize: 48)),
+                      child: const EmojiText('🌍', style: TextStyle(fontSize: 48)),
                     ),
                   Positioned(
                     right: 8,
@@ -827,7 +828,7 @@ class _CountrySelectorTile extends StatelessWidget {
         child: Row(
           children: [
             if (country != null)
-              Text(country!.flagEmoji, style: const TextStyle(fontSize: 22))
+              EmojiText(country!.flagEmoji, style: const TextStyle(fontSize: 22))
             else
               Icon(Icons.public_rounded, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 10),

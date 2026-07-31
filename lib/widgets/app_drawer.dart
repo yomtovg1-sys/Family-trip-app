@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/trip_provider.dart';
 import 'app_section.dart';
+import 'emoji_text.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -41,7 +42,7 @@ class AppDrawer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(trip.heroEmoji, style: const TextStyle(fontSize: 32)),
+                  EmojiText(trip.heroEmoji, style: const TextStyle(fontSize: 32)),
                   const SizedBox(height: 8),
                   Text(
                     trip.name,

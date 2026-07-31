@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../emoji_text.dart';
 
 /// The "upload photos" chooser for the Memories page: library or camera.
 Future<void> showAddPhotosSheet(
@@ -110,7 +111,7 @@ class _OptionTile extends StatelessWidget {
                   color: theme.colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Text(emoji, style: const TextStyle(fontSize: 22)),
+                child: EmojiText(emoji, style: const TextStyle(fontSize: 22)),
               ),
               const SizedBox(width: 14),
               Expanded(
