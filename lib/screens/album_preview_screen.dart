@@ -1,17 +1,21 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import '../models/album_layout.dart';
+import '../models/day_photos.dart';
 import '../models/memory_photo.dart';
 import '../providers/memories_provider.dart';
 import '../providers/trip_provider.dart';
 import '../services/album_pdf_builder.dart';
+import '../utils/trip_days.dart';
 import '../widgets/memories/reorderable_photo_grid.dart';
 
-/// The Album Preview screen: rename the album, rearrange or remove photos,
-/// pick a layout, then generate a printable PDF. Removing a photo here only
-/// takes it out of the album, not the Memories page.
+/// The Album Preview screen: rename the album, rearrange or remove photos
+/// within each day, pick a layout, then generate a printable PDF that keeps
+/// the same day-by-day structure as the Memories page. Removing a photo
+/// here only takes it out of the album, not the Memories page.
 class AlbumPreviewScreen extends StatefulWidget {
   final String tripId;
 
@@ -23,7 +27,8 @@ class AlbumPreviewScreen extends StatefulWidget {
 
 class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
   late final TextEditingController _titleController;
-  late List<MemoryPhoto> _photos;
+  late final List<int> _dayIndices;
+  late final Map<int, List<MemoryPhoto>> _photosByDay;
   AlbumLayout _layout = AlbumLayout.classic;
   bool _generating = false;
   Uint8List? _generatedPdf;
@@ -33,7 +38,12 @@ class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
     super.initState();
     final trip = context.read<TripProvider>().current.trip;
     _titleController = TextEditingController(text: trip.name);
-    _photos = List.of(context.read<MemoriesProvider>().forTrip(widget.tripId));
+    final memoriesProvider = context.read<MemoriesProvider>();
+    _photosByDay = {
+      for (var i = 0; i < trip.durationInDays; i++)
+        if (memoriesProvider.forDay(widget.tripId, i).isNotEmpty) i: memoriesProvider.forDay(widget.tripId, i),
+    };
+    _dayIndices = _photosByDay.keys.toList()..sort();
   }
 
   @override
@@ -42,29 +52,37 @@ class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
     super.dispose();
   }
 
-  void _reorder(int oldIndex, int newIndex) {
+  int get _totalPhotos => _photosByDay.values.fold(0, (sum, list) => sum + list.length);
+
+  void _reorder(int dayIndex, int oldIndex, int newIndex) {
     setState(() {
-      final moved = _photos.removeAt(oldIndex);
-      _photos.insert(newIndex.clamp(0, _photos.length), moved);
+      final photos = _photosByDay[dayIndex]!;
+      final moved = photos.removeAt(oldIndex);
+      photos.insert(newIndex.clamp(0, photos.length), moved);
       _generatedPdf = null;
     });
   }
 
-  void _removePhoto(MemoryPhoto photo) {
+  void _removePhoto(int dayIndex, MemoryPhoto photo) {
     setState(() {
-      _photos.removeWhere((p) => p.id == photo.id);
+      _photosByDay[dayIndex]!.removeWhere((p) => p.id == photo.id);
+      if (_photosByDay[dayIndex]!.isEmpty) _dayIndices.remove(dayIndex);
       _generatedPdf = null;
     });
   }
 
   Future<void> _generate() async {
-    if (_photos.isEmpty) return;
+    if (_totalPhotos == 0) return;
     setState(() => _generating = true);
     final trip = context.read<TripProvider>().current.trip;
+    final days = [
+      for (final dayIndex in _dayIndices)
+        DayPhotos(dayIndex: dayIndex, date: tripDayDate(trip, dayIndex), photos: _photosByDay[dayIndex]!),
+    ];
     final bytes = await buildAlbumPdf(
       tripName: trip.name,
       albumTitle: _titleController.text.trim().isEmpty ? trip.name : _titleController.text.trim(),
-      photos: _photos,
+      days: days,
       layout: _layout,
     );
     if (!mounted) return;
@@ -77,6 +95,7 @@ class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final dateFormat = DateFormat('MMM d');
 
     return Scaffold(
       appBar: AppBar(title: const Text('Album Preview')),
@@ -112,23 +131,7 @@ class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Text('Photos', style: theme.textTheme.titleSmall),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${_photos.length}',
-                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                    const Spacer(),
-                    Text(
-                      'Drag to rearrange',
-                      style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                if (_photos.isEmpty)
+                if (_dayIndices.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Text(
@@ -137,18 +140,30 @@ class _AlbumPreviewScreenState extends State<AlbumPreviewScreen> {
                     ),
                   )
                 else
-                  SizedBox(
-                    height: (_photos.length / 2).ceil() * 190.0,
-                    child: ReorderablePhotoGrid(
-                      photos: _photos,
-                      padding: EdgeInsets.zero,
-                      onReorder: _reorder,
-                      onDelete: _removePhoto,
+                  for (final dayIndex in _dayIndices) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        '${tripDayLabel(dayIndex)} — ${dateFormat.format(_photosByDay[dayIndex]!.first.takenAt)} '
+                        '· ${_photosByDay[dayIndex]!.length} photo${_photosByDay[dayIndex]!.length == 1 ? '' : 's'}',
+                        style: theme.textTheme.titleSmall,
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 24),
+                    SizedBox(
+                      height: (_photosByDay[dayIndex]!.length / 2).ceil() * 190.0,
+                      child: ReorderablePhotoGrid(
+                        photos: _photosByDay[dayIndex]!,
+                        padding: EdgeInsets.zero,
+                        showCoverBadge: true,
+                        onReorder: (oldIndex, newIndex) => _reorder(dayIndex, oldIndex, newIndex),
+                        onDelete: (photo) => _removePhoto(dayIndex, photo),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                const SizedBox(height: 4),
                 FilledButton.icon(
-                  onPressed: (_photos.isEmpty || _generating) ? null : _generate,
+                  onPressed: (_totalPhotos == 0 || _generating) ? null : _generate,
                   icon: _generating
                       ? const SizedBox(
                           width: 18,

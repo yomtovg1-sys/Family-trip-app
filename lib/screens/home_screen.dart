@@ -177,7 +177,7 @@ class HomeScreen extends StatelessWidget {
                 _Reveal(
                   delay: nextDelay(),
                   child: MemoriesPreview(
-                    photos: photos,
+                    photos: [...photos]..sort((a, b) => a.takenAt.compareTo(b.takenAt)),
                     onOpenJournal: () => Navigator.of(context).pushNamed(AppSection.photosRoute),
                   ),
                 ),

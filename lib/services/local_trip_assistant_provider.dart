@@ -97,9 +97,6 @@ class LocalTripAssistantProvider implements AIProvider {
     if (has(['activities', 'suggest activities', 'what can we do'])) {
       return _activitiesForDays(ctx);
     }
-    if (has(['caption'])) {
-      return _albumCaptions(ctx);
-    }
     if (has(['album title', 'name the album', 'title for'])) {
       return _albumTitle(ctx);
     }
@@ -446,16 +443,15 @@ class LocalTripAssistantProvider implements AIProvider {
   AIProviderReply _albumHelp(TripContextModel ctx) {
     if (ctx.memories.isEmpty) {
       return AIProviderReply(
-        text: "You don't have any photos saved yet for ${ctx.trip.name} — add some on the Memories tab and "
-            "I'll help you title it and write captions.",
+        text: "You don't have any photos saved yet for ${ctx.trip.name} — add some to a day on the Memories tab "
+            "and I'll help you title the album.",
         suggestedAction: AIQuickLinkTarget.memories,
         suggestedActionLabel: 'Open Memories',
       );
     }
     return AIProviderReply(
       text: 'You have ${ctx.memories.length} photo${ctx.memories.length == 1 ? '' : 's'} saved for '
-          '${ctx.trip.name} — I can suggest an album title, write captions, or summarize the trip. '
-          'Ready to build it?',
+          '${ctx.trip.name} — I can suggest an album title or summarize the trip. Ready to build it?',
       suggestedAction: AIQuickLinkTarget.albumPreview,
       suggestedActionLabel: 'Create Travel Album',
     );
@@ -473,31 +469,6 @@ class LocalTripAssistantProvider implements AIProvider {
       text: 'A few album title ideas for ${trip.name}:\n\n${suggestions.map((s) => '• $s').join('\n')}',
       suggestedAction: AIQuickLinkTarget.albumPreview,
       suggestedActionLabel: 'Create Travel Album',
-    );
-  }
-
-  AIProviderReply _albumCaptions(TripContextModel ctx) {
-    if (ctx.memories.isEmpty) {
-      return AIProviderReply(
-        text: 'Add a few photos to Memories first and I\'ll suggest captions for each one.',
-        suggestedAction: AIQuickLinkTarget.memories,
-        suggestedActionLabel: 'Open Memories',
-      );
-    }
-    final dateFormat = DateFormat('MMM d');
-    final sample = ctx.memories.take(3);
-    final lines = sample.map((photo) {
-      if (photo.caption != null && photo.caption!.trim().isNotEmpty) {
-        return '• Already captioned: "${photo.caption}"';
-      }
-      return '• Photo from ${dateFormat.format(photo.takenAt)}: try something like '
-          '"Another perfect day in ${ctx.trip.destination}"';
-    });
-    return AIProviderReply(
-      text: 'Caption ideas for your recent memories:\n\n${lines.join('\n')}\n\n'
-          "Once real image understanding is connected I'll read each photo directly instead of guessing.",
-      suggestedAction: AIQuickLinkTarget.memories,
-      suggestedActionLabel: 'Open Memories',
     );
   }
 

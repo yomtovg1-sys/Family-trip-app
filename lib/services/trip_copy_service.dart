@@ -199,9 +199,9 @@ class TripCopyService {
         MemoryPhoto(
           id: _newId('photo', i++),
           tripId: toTripId,
+          dayIndex: photo.dayIndex,
           bytes: photo.bytes,
           fileName: photo.fileName,
-          caption: photo.caption,
           takenAt: photo.takenAt,
         ),
     ];

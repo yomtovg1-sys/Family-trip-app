@@ -3,14 +3,16 @@ import '../../models/memory_photo.dart';
 import '../image_or_placeholder.dart';
 
 /// A photo grid that supports drag-and-drop reordering (long-press a photo
-/// and drag it onto another to swap positions), used by both the Memories
-/// page and the Album Preview screen.
+/// and drag it onto another to swap positions), used by the day album
+/// screen and the Album Preview screen. The first photo is always a day's
+/// cover, so dragging a photo to the front sets it as the cover too.
 class ReorderablePhotoGrid extends StatelessWidget {
   final List<MemoryPhoto> photos;
   final void Function(int oldIndex, int newIndex) onReorder;
   final ValueChanged<MemoryPhoto>? onTapPhoto;
   final ValueChanged<MemoryPhoto>? onDelete;
   final EdgeInsets padding;
+  final bool showCoverBadge;
 
   const ReorderablePhotoGrid({
     super.key,
@@ -19,6 +21,7 @@ class ReorderablePhotoGrid extends StatelessWidget {
     this.onTapPhoto,
     this.onDelete,
     this.padding = const EdgeInsets.all(16),
+    this.showCoverBadge = false,
   });
 
   @override
@@ -50,6 +53,7 @@ class ReorderablePhotoGrid extends StatelessWidget {
                 child: _PhotoTile(
                   photo: photo,
                   highlighted: isTarget,
+                  isCover: showCoverBadge && index == 0,
                   onTap: onTapPhoto == null ? null : () => onTapPhoto!(photo),
                   onDelete: onDelete == null ? null : () => onDelete!(photo),
                 ),
@@ -65,10 +69,17 @@ class ReorderablePhotoGrid extends StatelessWidget {
 class _PhotoTile extends StatelessWidget {
   final MemoryPhoto photo;
   final bool highlighted;
+  final bool isCover;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
-  const _PhotoTile({required this.photo, this.highlighted = false, this.onTap, this.onDelete});
+  const _PhotoTile({
+    required this.photo,
+    this.highlighted = false,
+    this.isCover = false,
+    this.onTap,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -85,25 +96,23 @@ class _PhotoTile extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             ImageOrPlaceholder(bytes: photo.bytes, icon: Icons.photo_rounded),
-            if (photo.caption != null && photo.caption!.trim().isNotEmpty)
+            if (isCover)
               Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
+                left: 6,
+                bottom: 6,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(10, 16, 10, 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.black.withValues(alpha: 0), Colors.black.withValues(alpha: 0.65)],
-                    ),
+                    color: Colors.black45,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    photo.caption!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star_rounded, size: 12, color: Colors.white),
+                      SizedBox(width: 3),
+                      Text('Cover', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                    ],
                   ),
                 ),
               ),
