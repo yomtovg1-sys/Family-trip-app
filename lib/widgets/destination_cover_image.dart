@@ -1,20 +1,68 @@
 import 'package:flutter/material.dart';
+import '../services/landmark_photo_service.dart';
 import '../utils/world_countries.dart';
 
-/// Renders a [Country]'s auto-assigned cover as a simple vector landscape —
-/// a gradient sky behind a silhouette matching its signature scenery (a
-/// mountain peak, a coastal cliff, etc). Fully offline and destination-
-/// matched, with no photo licensing or network dependency.
-class DestinationCoverImage extends StatelessWidget {
+/// Renders a [Country]'s auto-assigned cover. A vector landscape — a
+/// gradient sky behind a silhouette matching its signature scenery (a
+/// mountain peak, a coastal cliff, etc) — shows immediately and always
+/// works offline, since it needs no network at all. On top of it, a real
+/// photo of the country's signature landmark (Dubrovnik's walls, Mount
+/// Fuji, ...) fades in once [LandmarkPhotoService] resolves one from
+/// Wikipedia's free, keyless API — the "most familiar view" of the
+/// destination rather than an abstract illustration. If that lookup is
+/// slow, offline, or comes up empty, the illustration underneath is all
+/// that's shown; nothing ever looks broken.
+class DestinationCoverImage extends StatefulWidget {
   final Country cover;
 
   const DestinationCoverImage({super.key, required this.cover});
 
   @override
+  State<DestinationCoverImage> createState() => _DestinationCoverImageState();
+}
+
+class _DestinationCoverImageState extends State<DestinationCoverImage> {
+  Future<String?>? _photoFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhoto();
+  }
+
+  @override
+  void didUpdateWidget(covariant DestinationCoverImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cover.landmark != widget.cover.landmark) _loadPhoto();
+  }
+
+  void _loadPhoto() {
+    final landmark = widget.cover.landmark;
+    _photoFuture = landmark == fallbackCountry.landmark ? null : LandmarkPhotoService.fetchPhotoUrl(landmark);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _LandscapePainter(cover),
-      size: Size.infinite,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        CustomPaint(painter: _LandscapePainter(widget.cover), size: Size.infinite),
+        if (_photoFuture != null)
+          FutureBuilder<String?>(
+            future: _photoFuture,
+            builder: (context, snapshot) {
+              final url = snapshot.data;
+              if (url == null) return const SizedBox.shrink();
+              return Image.network(
+                url,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) =>
+                    progress == null ? child : const SizedBox.shrink(),
+                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+              );
+            },
+          ),
+      ],
     );
   }
 }
