@@ -86,21 +86,21 @@ extension ExpenseCategoryX on ExpenseCategory {
   Color get color {
     switch (this) {
       case ExpenseCategory.flights:
-        return const Color(0xFF4FC3F7);
+        return const Color(0xFF2F80ED);
       case ExpenseCategory.hotel:
-        return const Color(0xFF7986CB);
+        return const Color(0xFF9B6BFF);
       case ExpenseCategory.transportation:
-        return const Color(0xFF64B5F6);
+        return const Color(0xFF1AA5A0);
       case ExpenseCategory.food:
-        return const Color(0xFFFF8A65);
+        return const Color(0xFFFF7043);
       case ExpenseCategory.attractions:
-        return const Color(0xFFFFC94D);
+        return const Color(0xFFFFB300);
       case ExpenseCategory.shopping:
-        return const Color(0xFFBA68C8);
+        return const Color(0xFFE0559C);
       case ExpenseCategory.coffee:
         return const Color(0xFF8D6E63);
       case ExpenseCategory.grocery:
-        return const Color(0xFF81C784);
+        return const Color(0xFF66BB6A);
       case ExpenseCategory.other:
         return const Color(0xFF90A4AE);
     }
